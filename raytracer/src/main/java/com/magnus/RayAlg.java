@@ -1,3 +1,4 @@
+package com.magnus;
 import java.util.ArrayList;
 
 public class RayAlg {
@@ -5,9 +6,10 @@ public class RayAlg {
 
     public static void altTrace(int level,double weight ,Ray ray, Vec3 col) {
     	double tnear = Double.MAX_VALUE;
-    	RObject sphere = null;
+    	RObject robject = null;
 		TriangleMesh tm;
     	Isect[] hit = new Isect[2];
+		Isect xd =null;
     	//TODO: fix repeated code
     	for(int i = 0; i<raytracer.objects.length;i++) {
 			switch(raytracer.objects[i].name()){
@@ -15,8 +17,9 @@ public class RayAlg {
 					if(raytracer.objects[i].intersection(ray, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
+							xd = hit[0];
 							tnear = hit[0].t;
-							sphere = (Sphere)raytracer.objects[i];
+							robject = (Sphere)raytracer.objects[i];
 						}
 					}
 					break;
@@ -26,8 +29,9 @@ public class RayAlg {
 					if(raytracer.objects[i].intersection(ray, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
+							xd = hit[0];
 							tnear = hit[0].t;
-							sphere = (TriangleMesh)raytracer.objects[i];
+							robject = (TriangleMesh)raytracer.objects[i];
 						}
 					}
 					break;
@@ -35,11 +39,11 @@ public class RayAlg {
     		
     	}
 
-    	if (sphere == null) {
+    	if (robject == null) {
     		shadeBackground(ray,col);
     		return;
     	}
-    	shade(level,weight,ray,tnear,sphere,hit,col);
+    	shade(level,weight,ray,tnear,robject,hit,xd,col);
     	
     	
     	//test stuff
@@ -48,7 +52,7 @@ public class RayAlg {
     	Surf surf;
     	Ray tray = new Ray();
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-		Vec3 N = sphere.normal(P);
+		Vec3 N = robject.normal(P);
 		Vec3 tcol = new Vec3(0,0,0);
     	
     	if(level+1 < raytracer.maxlevel) {
@@ -88,13 +92,25 @@ public class RayAlg {
 		col.setValues(2, 2,2 );
 		
 	}
-	public static void shade(int level,double weight,Ray ray,double tnear,RObject sphere ,Isect[]  hit,Vec3 col ) {
+	public static void shade(int level,double weight,Ray ray,double tnear,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
 
 		col.setZero();
     	Vec3 phit = ray.origin.add(ray.direction.mult(tnear));
-    	Vec3 nhit = sphere.normal(phit);
+		Vec3 nhit = null;
+		switch(robject.name()){
+			case SPHERE:
+				nhit= robject.normal(phit);
+				break;
+			case TRIANGLEMESH:
+				nhit= ((TriangleMesh)robject).normal(phit,xd.indexTriangle);
+				break;
+			default:
+				assert(false);
+				break;
+		}
+    	
     	nhit.normalize();
-		Surf surf =  sphere.getSurf();
+		Surf surf =  robject.getSurf();
     	
     	
     	double bias =  0.0001;
@@ -148,7 +164,7 @@ public class RayAlg {
     	}
     	else {
     		for(int i = 0;i< raytracer.objects.length;i++) {
-    			if(raytracer.objects[i] != sphere && raytracer.objects[i].getSurf().emission_colour != null) {
+    			if(raytracer.objects[i] != robject && raytracer.objects[i].getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
     				Vec3 lightDirection = ((Sphere)raytracer.objects[i]).center.sub(phit);
     				lightDirection.normalize();

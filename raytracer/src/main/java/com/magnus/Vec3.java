@@ -1,3 +1,4 @@
+package com.magnus;
 public class Vec3 {
 	
 	public double x,y,z;

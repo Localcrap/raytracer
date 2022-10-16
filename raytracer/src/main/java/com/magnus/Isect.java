@@ -1,3 +1,4 @@
+package com.magnus;
 
 public class Isect {
 	public double t;

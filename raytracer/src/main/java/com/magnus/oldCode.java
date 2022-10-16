@@ -1,3 +1,4 @@
+package com.magnus;
 /*
 public class oldCode {
     public static void trace(int level,double weight ,Ray ray, Vec3 col) {

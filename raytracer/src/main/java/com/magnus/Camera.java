@@ -1,3 +1,4 @@
+package com.magnus;
 public class Camera {
     //posistion of the camera 
     public Vec3 origin;

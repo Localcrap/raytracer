@@ -1,3 +1,4 @@
+package com.magnus;
 public class Ray {
     public Vec3 origin;
     public Vec3 direction;

@@ -1,3 +1,6 @@
+package com.magnus;
+import java.util.ArrayList;
+
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
 
 public class TriangleMesh implements RObject{
@@ -10,14 +13,14 @@ public class TriangleMesh implements RObject{
 	int numTris = 0;
 	public static  double kEpsilon = 1e-8; 
 	
-	public TriangleMesh(int nf, int[] vi,int[] fi, Vec3[] verts, Vec3[] normals, Vec2[] st, Surf surf) {
+	public TriangleMesh(int nf, int[] vi,int[] fi, ArrayList<Vec3> verts, ArrayList<Vec3> normals, ArrayList<Vec2> st, Surf surf) {
 		nfaces = nf; 
 		vertsIndex = vi;
 		faceIndex = fi;
 		this.surf = surf;
 		int k = 0,maxVertIndex = 0;
 		for(int i = 0;i< nfaces;++i) {
-			numTris += faceIndex[i] - 2; 
+			numTris += faceIndex[i] - 2;
 
 			
 			for( int j = 0; j<faceIndex[i];++j){
@@ -33,24 +36,27 @@ public class TriangleMesh implements RObject{
 
 		P = new Vec3[maxVertIndex];
 		for(int i = 0; i< maxVertIndex; ++i){
-			P[i] = verts[i];
+			P[i] = verts.get(i);
 		}
 		trisIndex = new int[numTris*3];
 		int l = 0;
 		N = new Vec3[numTris*3];
+		k=0;
 		texCoordinates = new Vec2[numTris *3];
 		for (int i = 0 ; i< nfaces; ++i){
-			k=0;
-			for(int j = 0; j< faceIndex[i]-2 ; ++j){
+			for(int j = 0; j< (faceIndex[i]-2) ; ++j){
+				if(k+j+2 >= normals.size()){
+					break;
+				}
 				trisIndex[l] = vertsIndex[k];
 				trisIndex[l+1] = vertsIndex[k+j+1];
 				trisIndex[l+2] = vertsIndex[k+j+2];
-				N[l] = normals[k];
-				N[l+1] = normals[k+j+1];
-				N[l+2] = normals[k+j+2];
-				texCoordinates[l] = st[k];
-				texCoordinates[l+1] = st[k+j+1];
-				texCoordinates[l+2] = st[k+j+2];
+				N[l] = normals.get(k);
+				N[l+1] = normals.get(k+j+1);
+				N[l+2] = normals.get(k+j+2);
+				texCoordinates[l] = st.get(k);
+				texCoordinates[l+1] = st.get(k+j+1);
+				texCoordinates[l+2] = st.get(k+j+2);
 				l += 3;
 			}
 			k += faceIndex[i];
@@ -93,21 +99,27 @@ public class TriangleMesh implements RObject{
 	public int intersection(Ray ray,Isect[] hit){
 		int j = 0;
 		int isect = 0;
+		
 		hit[0] = new Isect(this, surf);
+		hit[0].t = Double.MAX_VALUE;
+		
 		for (int i = 0; i<numTris;i++){
-			final Vec3 v0 = P[trisIndex[j]];
-			final Vec3 v1 = P[trisIndex[j+1]];
-			final Vec3 v2 = P[trisIndex[j+2]];
-			double t = Double.MAX_VALUE;
+			Vec3 v0 = P[trisIndex[j]];
+			Vec3 v1 = P[trisIndex[j+1]];
+			Vec3 v2 = P[trisIndex[j+2]];
+			
 			double[] u = new double[3];
-			u[2]= t;
-			if(rayTriangleIntersect(ray, v0, v1, v2,  u) && t<hit[0].t){
-				//TODO: test array;
-				hit[0].t= t;
-				hit[0].uvTriangle.x = u[0];
-				hit[0].uvTriangle.y = u[1];
-				hit[0].indexTriangle = i;
-				isect = 1;
+			u[2]= Double.MAX_VALUE;
+			if(rayTriangleIntersect(ray, v0, v1, v2,  u)){
+				if( u[2] < hit[0].t){
+					//TODO: test array;
+					hit[0].t = u[2];
+					hit[0].uvTriangle.x = u[0];
+					hit[0].uvTriangle.y = u[1];
+					hit[0].indexTriangle = i;
+					isect = 1;
+				}
+
 
 
 			}
@@ -116,17 +128,23 @@ public class TriangleMesh implements RObject{
 		return isect;
 	}
 	public static TriangleMesh generatePolySphere(double rad,int divs){
+		
 		int numVertices = (divs-1)*divs+2;
-		Vec3[] P = new Vec3[numVertices];
-		Vec3[] N = new Vec3[numVertices];
-		Vec2[] St = new Vec2[numVertices];
+
+		ArrayList<Vec3> P = new ArrayList<>(numVertices); 
+		ArrayList<Vec3> N = new ArrayList<>(numVertices); 
+		ArrayList<Vec2> St = new ArrayList<>(numVertices); 
+		//Vec3[] P = new Vec3[numVertices];
+		//Vec3[] N = new Vec3[numVertices];
+		//Vec2[] St = new Vec2[numVertices];
 
 		double u = -Math.PI/2;
 		double v =  -Math.PI;
 		double du = Math.PI / divs;
 		double dv = 2* Math.PI /divs;
 
-		P[0] = N[0] = new Vec3(0,-rad,0);
+		P.add(0,new Vec3(0,-rad,0));
+		N.add(0,new Vec3(0,-rad,0));
 		int k = 1; 
 		for(int i = 0; i<divs -1; i++){
 			u += du;
@@ -135,15 +153,17 @@ public class TriangleMesh implements RObject{
 				double x = rad*Math.cos(u)*Math.cos(v);
 				double y = rad* Math.sin(u);
 				double z  = rad*Math.cos(u)*Math.sin(v);
-				P[k] = N[k] = new Vec3(x,y,z);
-				St[k] = new Vec2(u / Math.PI +0.5, v * 0.5 / Math.PI +0.5);
+				P.add(new Vec3(x,y,z));
+				N.add(new Vec3(x,y,z));
+				St.add(new Vec2(u / Math.PI +0.5, v * 0.5 / Math.PI +0.5));
 				v += dv; 
 				k++;
 
 				
 			}
 		}
-		P[0] = N[0] = new Vec3(0,rad,0);
+		P.add(new Vec3(0,-rad,0));
+		N.add(new Vec3(0,-rad,0));
 		int npolys = divs * divs;
 		int[] faceIndex = new int[npolys];
 		int[] vertsIndex = new int[((6+ (divs-1) * 4)*divs)];
@@ -180,6 +200,7 @@ public class TriangleMesh implements RObject{
 			vid = numV;
 		}
 		Surf surf = new Surf();
+		surf.kspec  =1;
 
 
 		return new TriangleMesh(npolys,vertsIndex, faceIndex, P, N, St, surf);
@@ -189,6 +210,15 @@ public class TriangleMesh implements RObject{
 	public Vec3 normal(Vec3 p) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	public Vec3 normal(Vec3 p, int triIndex) {
+		Vec3 v0 = P[trisIndex[triIndex * 3]]; 
+        Vec3 v1 = P[trisIndex[triIndex * 3 + 1]]; 
+        Vec3 v2 = P[trisIndex[triIndex * 3 + 2]]; 
+        Vec3 hitNormal = v1.sub(v0).cross(v2.sub(v0));//(v1 - v0).crossProduct(v2 - v0); 
+        hitNormal.normalize(); 
+
+		return hitNormal;
 	}
 	@Override
 	public boolean read() {

@@ -1,3 +1,4 @@
+package com.magnus;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,8 +16,8 @@ class raytracer{
 
 
     public final static int MAX_RAY_DEPTH = 99;
-    public final static int IMAGE_HIGHT = 4000;
-    public final static int IMAGE_WIDTH = 4000;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
     public final static int ISECTMAX = 100;
     public Comp modelroot;
     
@@ -24,7 +25,7 @@ class raytracer{
     public static double minweight = 0.001;
     public static double rayeps  = 0.0000001;
     //objects should for optimization reasons be sorted after closest proximity to camera point
-    public static RObject[] objects  = new RObject[7];
+    public static RObject[] objects  = new RObject[3];
 	//public static TriangleMesh[] trMesh = new TriangleMesh[10];
     //public static Sphere[] lightSources = new Sphere[1];
     
@@ -36,9 +37,9 @@ class raytracer{
     public static void main(String args[]) {
         //Matrix m = new Matrix(IMAGE_HIGHT, IMAGE_WIDTH);
         Camera c;
-        Vec3 pos = new Vec3(0,0,0), dir = new Vec3(0,0,0);
+        Vec3 pos = new Vec3(0,0,20), dir = new Vec3(0,0,0);
         
-        c = new Camera(pos,90,dir,IMAGE_WIDTH,IMAGE_HIGHT);
+        c = new Camera(pos,60,dir,IMAGE_WIDTH,IMAGE_HIGHT);
         setupObjects();
         try {
 			alg(c);
@@ -51,14 +52,14 @@ class raytracer{
     
     private static void setupObjects() {
     	objects[0] = new Sphere(10000,new Vec3( 0, -10004, -20),new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null);
-		objects[1] = new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null);
-		objects[2] = new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null);
-		objects[3] = new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null);
-		objects[4] = new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null);
+		//objects[1] = new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null);
+		//objects[2] = new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null);
+		//objects[3] = new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null);
+		//objects[4] = new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null);
 		
 		
-		objects[5]= new Sphere(3,new Vec3( 0.0,     20, -30),new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3));
-		objects[6] = TriangleMesh.generatePolySphere(2, 5);
+		objects[1]= new Sphere(3,new Vec3( 0.0,     20, -30),new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3));
+		objects[2] = TriangleMesh.generatePolySphere(5, 5);
 		
 		
 

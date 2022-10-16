@@ -14,8 +14,8 @@
             "type": "java",
             "name": "Launch raytracer",
             "request": "launch",
-            "mainClass": "raytracer",
-            "projectName": "home_exam_source_8cfa2d50"
+            "mainClass": "com.magnus.raytracer",
+            "projectName": "raytracer"
         }
     ]
 }

@@ -1,3 +1,4 @@
+package com.magnus;
 
 public class Surf {
 	public double kdiff = 0; // diffuse reflection coefficient

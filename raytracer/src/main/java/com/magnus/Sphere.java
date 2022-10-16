@@ -1,3 +1,4 @@
+package com.magnus;
 import java.util.ArrayList;
 
 public class Sphere implements RObject{

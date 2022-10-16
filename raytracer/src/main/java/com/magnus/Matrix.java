@@ -1,3 +1,4 @@
+package com.magnus;
 public class Matrix{
     int height,width;
     int[] matrix;

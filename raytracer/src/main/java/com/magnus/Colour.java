@@ -1,3 +1,4 @@
+package com.magnus;
 
 public class Colour extends Vec3 {
 	

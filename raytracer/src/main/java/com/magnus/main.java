@@ -1,6 +1,6 @@
 package com.magnus;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -58,7 +58,7 @@ class raytracer{
 		//objects[4] = new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null);
 		
 		
-		objects[1]= new Sphere(3,new Vec3( 0.0,     20, -30),new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3));
+		objects[1]= new Sphere(3,new Vec3( 0.0,     20, 0),new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3));
 		objects[2] = TriangleMesh.generatePolySphere(5, 5);
 		
 		
@@ -70,39 +70,76 @@ class raytracer{
     	RayAlg ra = new RayAlg();
         Ray ray = new Ray();
         Vec3 col = new Vec3(0,0,0);
-        BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
+        //BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
+		
+		try {
+			File picture = new File("image.ppm");
+			if(picture.createNewFile()){
+
+			}
+			else{
+				picture.delete();
+				picture.createNewFile();
+			}
+			FileWriter pic = new FileWriter("image.ppm");
+			pic.write("P3\n"+Integer.toString(IMAGE_WIDTH)+" "+Integer.toString(IMAGE_HIGHT)+"\n255\n");
+			
+
+
+			
+
+		
+		
+
 
         for(int j = 0; j< IMAGE_HIGHT;j++){
             for(int i = 0; i< IMAGE_WIDTH;i++){
             	col.setZero();
             	c.computeRay(j,i,ray);
             	RayAlg.altTrace(0,1,ray,col);
-            	int rgb = rgbgen(col.x,col.y,col.z);
+            	//int rgb = rgbgen(col.x,col.y,col.z);
+				int r,g,b;
+				r =(int) Math.min(col.x*255.0, 255);
+				g =(int) Math.min(col.y*255.0, 255);
+				b =(int) Math.min(col.z*255.0, 255);
             	if(col.x !=2) {
             		test++;
             	}
-            	
-            	image.setRGB(i, j, rgb);
+            	//TODO:replace I/O with buffer
+				
+				pic.write(Integer.toString(r)+" "+Integer.toString(g)+" "+Integer.toString(b));
+				if(i==IMAGE_WIDTH-1){
+					pic.write("\n");
+				}
+				else{
+					pic.write("	");
+				}
+			
             	
             	
 
 
             }
+			
         }
-        File outputFile = new File("output.bmp");
-        ImageIO.write(image, "bmp", outputFile);
+		pic.close();
+		} catch (IOException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+        //File outputFile = new File("output.bmp");
+        //ImageIO.write(image, "bmp", outputFile);
     }
+	/* 
 	public static int rgbgen(double r,double g,double b) {
 		int x,y,z;
 		x =(int) Math.min(r*255.0, 255);
 		y =(int) Math.min(g*255.0, 255);
 		z =(int) Math.min(b*255.0, 255);
-		int rgb = x;
-		rgb = (rgb << 8) + y;
-		rgb = (rgb << 8) + z;
-		return rgb;
+		
 		//return ((x)<<16)|((y)<<8)|(z);
 	}
+	*/
 	
     
     public static Vec3 rayPoint(Ray ray,double t) {

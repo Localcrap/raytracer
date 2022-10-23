@@ -22,6 +22,13 @@ public class Camera {
         assert(this.aspectratio != 0);
         this.invHeight = 1./height;
         this.invWidth = 1./width;
+        //double len = (width/2)/Math.tan(fov);
+        //Vec3 sqrpos = origin.add(dir.mult(len));
+        
+
+
+
+
     }
 
     public Ray computeRay(int j,int i, Ray r){

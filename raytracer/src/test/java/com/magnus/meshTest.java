@@ -17,7 +17,7 @@ public class  meshTest
     @Test
     public void testInterection()
     {
-        TriangleMesh tm =  TriangleMesh.generatePolySphere(2, 4);
+        TriangleMesh tm =  TriangleMesh.generatePolySphere(5, 5);
         
         Vec3 origin = new Vec3(-20 ,0,0);
         Vec3 direction = new Vec3(1,0,0);
@@ -55,6 +55,21 @@ public class  meshTest
     public void testTriangleSphere(){
         TriangleMesh tm =  TriangleMesh.generatePolySphere(2, 5);
         assertTrue(Arrays.stream(tm.trisIndex).max().getAsInt()> 20);
+    }
+    @Test
+    public void testMeshCreation(){
+        Vec3 P[] =  { 
+            new Vec3 (-5, -5,  5), new Vec3 ( 5, -5,  5), 
+            new Vec3 ( 5, -5, -5), new Vec3 (-5, -5, -5), 
+            new Vec3 (-5,  5, -5), new Vec3 (-5,  5,  5), 
+        };
+        int nf = 2;
+        int faceIndex[] = {4,4};
+        int vertsIndex[] = {0, 1, 2, 3, 0, 3, 4, 5}; 
+
+        TriangleMesh tm =  new TriangleMesh(nf, vertsIndex, faceIndex, P, null, null, null);
+        assertTrue(tm.numTris == 4);
+
     }
     
     

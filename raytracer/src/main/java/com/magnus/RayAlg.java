@@ -109,7 +109,7 @@ public class RayAlg {
 				break;
 		}
     	
-    	nhit.normalize();
+    	//nhit.normalize();
 		Surf surf =  robject.getSurf();
     	
     	
@@ -185,10 +185,23 @@ public class RayAlg {
     	if(surf.emission_colour != null) {
     		col.setValuesV(col.add(surf.emission_colour));
     	}
+		/*
+		switch (robject.name()) {
+			case TRIANGLEMESH:
+				col.setValuesV(new Vec3(0.2,0.2,0.2));
+				break;
+		
+			default:
+				break;
+		}
+		 */
 		
 		
 
     }
+	public static void altShade(Vec3 col){
+
+	}
     //based on Heckbert-Hanranhan84
     private static boolean TransmissionDirection(Isect[] hit, Vec3 I, Vec3 N, Ray tray) {
 		double n1, n2, eta, c1, cs2;

@@ -59,11 +59,13 @@ public class TriangleMesh implements RObject{
 
 
 	}
+	//møller trombore 
 	public static boolean rayTriangleIntersect(Ray r,Vec3 v0,Vec3 v1,Vec3 v2, double[] u){
 		Vec3 v0v1 = v1.sub(v0);
 		Vec3 v0v2 = v2.sub(v0);
 		Vec3 pvec = r.direction.cross(v0v2);
 		double det = v0v1.dot(pvec);
+		//paralell to triangle?
 		if(Math.abs(det)<kEpsilon){
 			return false;
 
@@ -88,8 +90,52 @@ public class TriangleMesh implements RObject{
 		return true;
 
 	}
+	//alt intersection algorithm following Jeff Arenberg's example
+	public static boolean altRayTriangleIntersect(Ray r,Vec3 v0,Vec3 v1,Vec3 v2, double[] u){
+		
+		Vec3 p0,p1,p2,N;
+		Vec3 bb[] = new Vec3[3];
+		p0 = v0.sub(r.origin);
+		p1 = v0.sub(v1); //v0-v1
+		p2 = v0.sub(v2); //v0-v2
+		N = p1.cross(p2); // N
+
+		bb[0] = p1.inv();
+		bb[1] = p2.inv();
+		bb[2] = N.inv();
 
 
+		double den = r.direction.dot(bb[2]);
+		//is this u?;
+		u[0]= den;
+		//paralell to triangle
+		if(den == 0){
+			return false;
+		}
+		double num = p0.sub(r.origin).dot(bb[2]);
+		u[1] = num;
+		//if on or behind triangle
+		double t = num/den;
+		if (t <= 0){
+			return false;
+		}
+		Vec3 p = r.direction.mult(t).add(r.origin).sub(p0);
+		double a,b;
+		a = p.dot(bb[0]);
+		b = p.dot(bb[1]);
+		//if not in triangle
+		if (a < 0.0 || b < 0.0 || a + b > 1.0){
+			return false;
+		}
+		u[2]= t;
+
+
+
+
+		return true;
+	}
+
+ //cycle through all triangles and test intersection
 	public int intersection(Ray ray,Isect[] hit){
 		int j = 0;
 		int isect = 0;

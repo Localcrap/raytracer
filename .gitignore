@@ -16,3 +16,5 @@ raytracer/target/classes/com/magnus/Vec2.class
 raytracer/target/classes/com/magnus/Vec3.class
 raytracer/target/test-classes/com/magnus/AppTest.class
 raytracer/target/test-classes/com/magnus/meshTest.class
+raytracer/src/main/java/com/magnus/RayAlg.java
+image.ppm

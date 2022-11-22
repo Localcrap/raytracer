@@ -136,7 +136,7 @@ public class TriangleMesh implements RObject{
 	}
 
  //cycle through all triangles and test intersection
-	public int intersection(Ray ray,Isect[] hit){
+	public int intersection(Ray ray,double tmin,double tmax,Isect[] hit){
 		int j = 0;
 		int isect = 0;
 		

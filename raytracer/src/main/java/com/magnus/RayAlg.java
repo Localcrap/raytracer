@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class RayAlg {
 
 
-    public static void altTrace(int level,double weight ,Ray ray, Vec3 col) {
+    public static void altTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
     	double tnear = Double.MAX_VALUE;
     	RObject robject = null;
 		TriangleMesh tm;
@@ -14,7 +14,7 @@ public class RayAlg {
     	for(int i = 0; i<raytracer.objects.length;i++) {
 			switch(raytracer.objects[i].name()){
 				case SPHERE:
-					if(raytracer.objects[i].intersection(ray, hit)>0) {
+					if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
 							xd = hit[0];
@@ -26,7 +26,7 @@ public class RayAlg {
 
 
 				case TRIANGLEMESH:
-					if(raytracer.objects[i].intersection(ray, hit)>0) {
+					if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
 							xd = hit[0];
@@ -43,7 +43,7 @@ public class RayAlg {
     		shadeBackground(ray,col);
     		return;
     	}
-    	shade(level,weight,ray,tnear,robject,hit,xd,col);
+    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col);
     	
     	
     	//test stuff
@@ -92,7 +92,7 @@ public class RayAlg {
 		col.setValues(2, 2,2 );
 		
 	}
-	public static void shade(int level,double weight,Ray ray,double tnear,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
+	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
 
 		col.setZero();
     	Vec3 phit = ray.origin.add(ray.direction.mult(tnear));
@@ -137,7 +137,7 @@ public class RayAlg {
         		
         		refldir.normalize();
         		 //colour;
-        		altTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection);
+        		altTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
     		}
 
     		
@@ -149,7 +149,7 @@ public class RayAlg {
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
     			Vec3 refrdir = ray.direction.mult(eta).add(nhit.mult(eta*cosi-Math.sqrt(k)));
     			refrdir.normalize();
-    			altTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction);
+    			altTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction,tmin,tmax);
     			
     			
     		}
@@ -170,7 +170,7 @@ public class RayAlg {
     				lightDirection.normalize();
     				for(int j = 0;j<raytracer.objects.length;j++) {
     					if(i!=j) {
-    						if(raytracer.objects[j].intersection(new Ray(phit.add(nhit.mult(bias)),lightDirection), hit)>0) {
+    						if(raytracer.objects[j].intersection(new Ray(phit.add(nhit.mult(bias)),lightDirection),tmin,tmax, hit)>0) {
     							transmission.setZero();;
     							break;
     						}
@@ -199,6 +199,9 @@ public class RayAlg {
 		
 
     }
+	public void diffuse(){
+		
+	}
 	public static void altShade(Vec3 col){
 
 	}
@@ -220,13 +223,13 @@ public class RayAlg {
 	private static Vec3 specularDirection(Vec3 N, Vec3 I) {
 		return N.addS(-2.*I.dot(N), I);
 	}
-	public static double shadow(Ray ray,double tmax) {
+	public static double shadow(Ray ray,double tmin,double tmax) {
 		int nhit;
 		Isect[] hit = new Isect[raytracer.ISECTMAX];
 		int hitpos = 0;
 		
 		for( int i = 0; i<raytracer.objects.length;i++) {
-			if(raytracer.objects[i].intersection(ray, hit)== 0) {
+			if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)== 0) {
 				return 1.;
 			}
 			if( hit[0].t > raytracer.rayeps) {

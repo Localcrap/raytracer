@@ -163,7 +163,7 @@ class raytracer{
 }
 interface RObject{
 	//public Surf surf = null;
-	public int intersection(Ray ray,Isect[] hit);
+	public int intersection(Ray ray,double tmin, double tmax ,Isect[] hit);
 	public Vec3 normal(Vec3 p);
 	public boolean read();
 	public raytracer.test name();

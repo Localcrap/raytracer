@@ -8,7 +8,7 @@ public class BVH {
     }
     
     //int intersection test based on Andrew Kenslers approach
-    public boolean intersection(Ray r, double tmin, double tmax){
+    public boolean intersection(Ray r,Double tmin,double tmax, Isect[] hit ){
         for(int a=0;a<3;a++){
             //i hate this
             double invD = 1.0 / r.direction.itterate(a);

@@ -9,10 +9,19 @@ public class BVHNode  implements RObject{
 
 
     @Override
-    public int intersection(Ray ray, Isect[] hit) {
-        // TODO Auto-generated method stub
+    public int intersection(Ray ray,double tmin,double tmax, Isect[] hit) {
+        if(!box.intersection(ray,tmin,tmax, hit)){
+            return 0;
+        }
+        int hitLeft = left.intersection(ray,tmin,tmax, hit);
+        int hitRight = right.intersection(ray, tmin, (hitLeft ==1) ? hit[0].t : tmax, hit);
+
+        if(hitLeft == 1 || hitRight == 1){
+            return 1;
+        }
         return 0;
     }
+    
 
     @Override
     public Vec3 normal(Vec3 p) {
@@ -40,11 +49,78 @@ public class BVHNode  implements RObject{
 
     @Override
     public boolean boundingBox(BVHValues v) {
-        //TODO:fix return;
         v.outputBox = box;
         return true;
-        
+
 
     }
+    public BVHNode build(RObject srcObjects[],int start,int end, double time0, double time1){
+        int objectSpan = end- start;
+
+        RObject objects[] = new RObject[objectSpan];
+        System.arraycopy(srcObjects, start, objects, 0, objectSpan);
+
+        int axis = getRandomNumber(0,2);
+        if (objectSpan == 1){
+            left = right = objects[0];
+
+        }
+        else if( objectSpan == 2){
+            boolean comp =false;
+            switch (axis) {
+                case 0:
+                    comp = boxXCompare(objects[0],objects[1]);
+                    break;
+                case 1:
+                    comp =boxYCompare(objects[0],objects[1]);
+                    break;
+                
+                case 2:
+                    comp = boxZcompare(objects[0],objects[1]);
+                    break;
+                default:
+                    //throw new Exception("should not be possible");
+                    assert(false);
+                    break;
+            }
+
+            if(comp){
+                left = objects[0];
+                right = objects[1];
+
+            }
+            else{
+                left = objects[1];
+                right = objects[0];
+            }
+
+        }
+        else{
+            
+        }
+
+        return null;
+    }
+    private boolean boxZcompare(RObject rObject, RObject rObject2) {
+        return false;
+    }
+
+
+    private boolean boxYCompare(RObject rObject, RObject rObject2) {
+        return false;
+    }
+
+
+    private boolean boxXCompare(RObject rObject, RObject rObject2) {
+        return false;
+    }
+
+
+    public static int getRandomNumber(int min, int max) {
+        return (int) ((Math.random() * (max - min)) + min);
+    }
     
+    public static void nodeSort(){
+        
+    }
 }

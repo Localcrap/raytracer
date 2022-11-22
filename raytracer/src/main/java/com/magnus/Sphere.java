@@ -29,7 +29,7 @@ public class Sphere implements RObject{
 	}
 	@Override
 	
-	public int intersection(Ray ray,Isect[] hit ) {
+	public int intersection(Ray ray,double tmin, double tmax,Isect[] hit ) {
 		int nroots;
 		double b,disc,t1,t2;
 		Vec3 v;

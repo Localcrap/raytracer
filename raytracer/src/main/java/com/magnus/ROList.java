@@ -10,7 +10,7 @@ public class ROList implements RObject {
 
 
     @Override
-    public int intersection(Ray ray, Isect[] hit) {
+    public int intersection(Ray ray,double tmin,double tmax, Isect[] hit) {
         // TODO Auto-generated method stub
         return 0;
     }

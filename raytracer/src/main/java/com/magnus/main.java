@@ -168,8 +168,8 @@ interface RObject{
 	public boolean read();
 	public raytracer.test name();
 	public Surf getSurf();
-	public boolean boundingBox(double time0,double time1,BVH outputBox);
-	
+	public boolean boundingBox(BVHValues v);
+
 	
 	//might need to add a world to object transform matrix
 	

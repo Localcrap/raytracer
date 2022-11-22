@@ -22,3 +22,4 @@ raytracer/target/test-classes/com/magnus/*.class
 raytracer/target/classes/com/magnus/BVH.class
 raytracer/target/classes/com/magnus/BVHNode.class
 raytracer/target/classes/com/magnus/ROList.class
+raytracer/src/main/java/com/magnus/BVHNode.java

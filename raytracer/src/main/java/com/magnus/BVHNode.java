@@ -3,7 +3,10 @@ package com.magnus;
 import com.magnus.raytracer.test;
 
 public class BVHNode  implements RObject{
-    
+    RObject left;
+    RObject right;
+    BVH box;
+
 
     @Override
     public int intersection(Ray ray, Isect[] hit) {
@@ -36,9 +39,12 @@ public class BVHNode  implements RObject{
     }
 
     @Override
-    public boolean boundingBox(double time0, double time1, BVH outputBox) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean boundingBox(BVHValues v) {
+        //TODO:fix return;
+        v.outputBox = box;
+        return true;
+        
+
     }
     
 }

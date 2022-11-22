@@ -40,12 +40,14 @@ public class ROList implements RObject {
     }
 
     @Override
-    public boolean boundingBox(double time0, double time1, BVH outputBox) {
+    public boolean boundingBox(BVHValues v) {
         BVH tempBox = null;
         boolean firstBox = true;
         for(RObject object : objects){
-            if(!object.boundingBox(time0, time1, tempBox)){ return false;}
-            outputBox = firstBox ? tempBox : BVH.surrondingBox(outputBox, tempBox);
+            BVHValues v2 =  new BVHValues(v.time0, v.time1, tempBox);
+            if(!object.boundingBox(v2)){ return false;}
+            //v2.outputBox is tempbox
+            v.outputBox = firstBox ? v2.outputBox : BVH.surrondingBox(v.outputBox, v2.outputBox);
             firstBox = false;
         }
         

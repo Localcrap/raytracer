@@ -92,6 +92,21 @@ public class Vec3 {
 	public Vec3 inv(){
 		return new Vec3(-x,-y,-z);
 	}
+	public double itterate(int i){
+        switch (i) {
+            case 0:
+                return x;
+			
+			case 1:
+                return y;
+
+			case 2: 
+				return z;
+        
+            default:
+				throw new  NullPointerException("out of bounds");
+        }
+    }
 	
 	
 }

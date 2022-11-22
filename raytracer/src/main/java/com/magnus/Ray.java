@@ -22,4 +22,5 @@ public class Ray {
     public void setDirection(Vec3 direction) {
     	this.direction = direction;
     }
+
 }

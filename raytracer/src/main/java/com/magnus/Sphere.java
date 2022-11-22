@@ -105,6 +105,12 @@ public class Sphere implements RObject{
 	public Surf getSurf() {
 		return surf;
 	}
+	@Override
+	public boolean boundingBox(double time0, double time1, BVH outputBox) {
+		Vec3 temp = new Vec3(radius, radius, radius);
+		outputBox = new BVH(center.sub(temp), center.add(temp));
+		return true;
+	}
 	
     
 }

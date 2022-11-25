@@ -4,58 +4,63 @@ package com.magnus;
 // using Hoare's partition scheme
 class GFG {
 
+	static void swap(RObject[] arr, int i, int j)
+    {
+        RObject temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
 	/* This function takes first element as pivot, and
 	places all the elements smaller than the pivot on the
 	left side and all the elements greater than the pivot
 	on the right side. It returns the index of the last
 	element on the smaller side*/
-	static int partition(int[] arr, int low, int high)
-	{
-		int pivot = arr[low];
-		int i = low - 1, j = high + 1;
-
-		while (true) {
-			// Find leftmost element greater
-			// than or equal to pivot
-			do {
-				i++;
-			} while (arr[i] < pivot);
-
-			// Find rightmost element smaller
-			// than or equal to pivot
-			do {
-				j--;
-			} while (arr[j] > pivot);
-
-			// If two pointers met.
-			if (i >= j)
-				return j;
-			int temp = arr[i];
-			arr[i] = arr[j];
-			arr[j] = temp;
-			// swap(arr[i], arr[j]);
-		}
-	}
+    static int partition(RObject[] arr, int low, int high,int axis)
+    {
+  
+        // pivot
+        RObject pivot = arr[high];
+  
+        // Index of smaller element and
+        // indicates the right position
+        // of pivot found so far
+        int i = (low - 1);
+  
+        for (int j = low; j <= high - 1; j++) {
+  
+            // If current element is smaller
+            // than the pivot
+            if (box_compare(arr[j], pivot, axis)) {
+  
+                // Increment index of
+                // smaller element
+                i++;
+                swap(arr, i, j);
+            }
+        }
+        swap(arr, i + 1, high);
+        return (i + 1);
+    }
 
 	/* The main function that
 	implements QuickSort
 	arr[] --> Array to be sorted,
 	low --> Starting index,
 	high --> Ending index */
-	static void quickSort(int[] arr, int low, int high)
-	{
-		if (low < high) {
-			/* pi is partitioning index,
-			arr[p] is now at right place */
-			int pi = partition(arr, low, high);
-
-			// Separately sort elements before
-			// partition and after partition
-			quickSort(arr, low, pi);
-			quickSort(arr, pi + 1, high);
-		}
-	}
-
+	static void quickSort(RObject[] arr, int low, int high,int axis)
+    {
+        if (low < high) {
+  
+            // pi is partitioning index, arr[p]
+            // is now at right place
+            int pi = partition(arr, low, high,axis);
+  
+            // Separately sort elements before
+            // partition and after partition
+            quickSort(arr, low, pi - 1,axis);
+            quickSort(arr, pi + 1, high,axis);
+        }
+    }
 	/* Function to print an array */
 	static void printArray(int[] arr, int n)
 	{
@@ -64,14 +69,17 @@ class GFG {
 		System.out.println();
 	}
 
-	// Driver Code
-	static public void main(String[] args)
-	{
-		int[] arr = { 10, 7, 8, 9, 1, 5 };
-		int n = arr.length;
-		quickSort(arr, 0, n - 1);
-		System.out.println("Sorted array: ");
-		printArray(arr, n);
+	static boolean box_compare(RObject a, RObject b, int axis){
+		BVHValues boxA =new BVHValues(0, 0, null);
+		BVHValues boxB =new BVHValues(0, 0, null);
+
+		if(!a.boundingBox(boxA) || !b.boundingBox(boxB)){
+			System.out.println("box missing");
+		}
+		
+
+
+		return boxA.outputBox.min().itterate(axis) < boxB.outputBox.min().itterate(axis);
 	}
 }
 

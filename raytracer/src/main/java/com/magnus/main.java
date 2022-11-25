@@ -96,7 +96,7 @@ class raytracer{
             for(int i = 0; i< IMAGE_WIDTH;i++){
             	col.setZero();
             	c.computeRay(j,i,ray);
-            	RayAlg.altTrace(0,1,ray,col);
+            	RayAlg.altTrace(0,1,ray,col,0,100);
             	//int rgb = rgbgen(col.x,col.y,col.z);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);

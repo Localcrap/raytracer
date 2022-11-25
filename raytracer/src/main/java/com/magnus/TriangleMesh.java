@@ -279,6 +279,11 @@ public class TriangleMesh implements RObject{
 		// TODO Auto-generated method stub
 		return surf;
 	}
+	@Override
+	public boolean boundingBox(BVHValues v) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }
 

@@ -3,6 +3,7 @@ package com.magnus;
 import com.magnus.raytracer.test;
 
 public class BVHNode  implements RObject{
+    ROList list;
     RObject left;
     RObject right;
     BVH box;
@@ -54,11 +55,14 @@ public class BVHNode  implements RObject{
 
 
     }
-    public BVHNode build(RObject srcObjects[],int start,int end, double time0, double time1){
+    public BVHNode(RObject srcObjects[],int start,int end, double time0, double time1){
         int objectSpan = end- start;
+        list = new ROList();
 
-        RObject objects[] = new RObject[objectSpan];
-        System.arraycopy(srcObjects, start, objects, 0, objectSpan);
+       
+
+        RObject objects[] = new RObject[objectSpan-1];
+        System.arraycopy(srcObjects, start, objects, 0, objectSpan-1);
 
         int axis = getRandomNumber(0,2);
         if (objectSpan == 1){
@@ -67,23 +71,7 @@ public class BVHNode  implements RObject{
         }
         else if( objectSpan == 2){
             boolean comp =false;
-            switch (axis) {
-                case 0:
-                    comp = boxXCompare(objects[0],objects[1]);
-                    break;
-                case 1:
-                    comp =boxYCompare(objects[0],objects[1]);
-                    break;
-                
-                case 2:
-                    comp = boxZcompare(objects[0],objects[1]);
-                    break;
-                default:
-                    //throw new Exception("should not be possible");
-                    assert(false);
-                    break;
-            }
-
+            comp = GFG.box_compare(objects[0],objects[1],axis);
             if(comp){
                 left = objects[0];
                 right = objects[1];
@@ -96,25 +84,23 @@ public class BVHNode  implements RObject{
 
         }
         else{
-            
+            GFG.quickSort(srcObjects,0,objectSpan-1,axis);
+            int mid = start + objectSpan/2;
+            left = new BVHNode(objects,start,mid,time0,time1);
+            right = new BVHNode(objects,mid,end,time0,time1);
         }
+        BVHValues boxLeft = new BVHValues(time0, time1);
+        BVHValues boxRight = new BVHValues(time0,time1);
 
-        return null;
+        assert(left.boundingBox(boxLeft) && right.boundingBox(boxRight));
+
+        box = BVH.surrondingBox(boxLeft.outputBox, boxRight.outputBox);
+        list.listCopy(objects, objects.length);
+
+        
+
+
     }
-    private boolean boxZcompare(RObject rObject, RObject rObject2) {
-        return false;
-    }
-
-
-    private boolean boxYCompare(RObject rObject, RObject rObject2) {
-        return false;
-    }
-
-
-    private boolean boxXCompare(RObject rObject, RObject rObject2) {
-        return false;
-    }
-
 
     public static int getRandomNumber(int min, int max) {
         return (int) ((Math.random() * (max - min)) + min);

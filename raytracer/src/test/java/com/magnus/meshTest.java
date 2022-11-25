@@ -23,7 +23,7 @@ public class  meshTest
         Vec3 direction = new Vec3(1,0,0);
         Ray r = new Ray(origin, direction);
         Isect i[] = new Isect[2]; 
-        assertTrue( tm.intersection(r, i)>0);
+        assertTrue( tm.intersection(r,0,100, i)>0);
 
     }
     @Test
@@ -35,7 +35,7 @@ public class  meshTest
         Vec3 direction = new Vec3(0,1,0);
         Ray r = new Ray(origin, direction);
         Isect i[] = new Isect[2]; 
-        assertTrue( tm.intersection(r, i)>0);
+        assertTrue( tm.intersection(r,0,100, i)>0);
 
     }
     @Test

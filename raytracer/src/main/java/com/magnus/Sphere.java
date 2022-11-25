@@ -27,9 +27,9 @@ public class Sphere implements RObject{
 		
 		
 	}
-	@Override
 	
-	public int intersection(Ray ray,double tmin, double tmax,Isect[] hit ) {
+	
+	@Override public int intersection(Ray ray,double tmin, double tmax,Isect[] hit ) {
 		int nroots;
 		double b,disc,t1,t2;
 		Vec3 v;
@@ -46,6 +46,14 @@ public class Sphere implements RObject{
 			return 0;
 		}
 		t1 = b-disc;
+		//test if object is closer then already observed object
+		if(hit[0] !=null){
+			if(hit[0].t < t1 && hit[0].t < t2){
+				//TODO: should this return 1 even if the result is not stored?
+				return 0;
+			}
+		}
+
 		if(t1>raytracer.rayeps) {
 			//entering sphere
 			hit[hitpos] = (new Isect(t1,this,1,null));
@@ -105,9 +113,9 @@ public class Sphere implements RObject{
 	public Surf getSurf() {
 		return surf;
 	}
-	@Override
-	public boolean boundingBox(BVHValues v) {
-		Vec3 temp = new Vec3(radius, radius, radius);
+	
+	@Override public boolean boundingBox(BVHValues v) {
+	Vec3 temp = new Vec3(radius, radius, radius);
 		v.outputBox = new BVH(center.sub(temp), center.add(temp));
 		return true;
 	}

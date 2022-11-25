@@ -61,8 +61,8 @@ public class BVHNode  implements RObject{
 
        
 
-        RObject objects[] = new RObject[objectSpan-1];
-        System.arraycopy(srcObjects, start, objects, 0, objectSpan-1);
+        RObject objects[] = new RObject[objectSpan];
+        System.arraycopy(srcObjects, start, objects, 0, objectSpan);
 
         int axis = getRandomNumber(0,2);
         if (objectSpan == 1){
@@ -84,15 +84,16 @@ public class BVHNode  implements RObject{
 
         }
         else{
-            GFG.quickSort(srcObjects,0,objectSpan-1,axis);
-            int mid = start + objectSpan/2;
-            left = new BVHNode(objects,start,mid,time0,time1);
-            right = new BVHNode(objects,mid,end,time0,time1);
+            GFG.quickSort(objects,0,objectSpan-1,axis);
+            int mid = objectSpan/2;
+            left = new BVHNode(objects,0,mid,time0,time1);
+            right = new BVHNode(objects,mid,objectSpan,time0,time1);
         }
         BVHValues boxLeft = new BVHValues(time0, time1);
         BVHValues boxRight = new BVHValues(time0,time1);
+        left.boundingBox(boxLeft);
+        right.boundingBox(boxRight);
 
-        assert(left.boundingBox(boxLeft) && right.boundingBox(boxRight));
 
         box = BVH.surrondingBox(boxLeft.outputBox, boxRight.outputBox);
         list.listCopy(objects, objects.length);

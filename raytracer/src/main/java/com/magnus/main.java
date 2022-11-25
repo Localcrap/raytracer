@@ -25,7 +25,8 @@ class raytracer{
     public static double minweight = 0.001;
     public static double rayeps  = 0.0000001;
     //objects should for optimization reasons be sorted after closest proximity to camera point
-    public static RObject[] objects  = new RObject[3];
+    public static ROList objects;
+	public static BVHNode topNode;
 	//public static TriangleMesh[] trMesh = new TriangleMesh[10];
     //public static Sphere[] lightSources = new Sphere[1];
     
@@ -51,16 +52,21 @@ class raytracer{
     }
     
     private static void setupObjects() {
-    	objects[0] = new Sphere(10000,new Vec3( 0, -10004, -20),new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null);
-		//objects[1] = new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null);
-		//objects[2] = new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null);
-		//objects[3] = new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null);
-		//objects[4] = new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null);
-		
-		
-		objects[1]= new Sphere(3,new Vec3( 0.0,     20, 0),new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3));
-		objects[2] = TriangleMesh.generatePolySphere(5, 5);
-		
+        objects = new ROList();
+        
+        objects.add( new Sphere(10000,new Vec3( 0, -10004, -20),
+            new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null));
+        objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
+
+        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null));
+		objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
+		objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
+		objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
+
+        
+        BVHNode b = new BVHNode(objects.getList(), 0, objects.size, 0, 100);
+		topNode = b;
 		
 
 	}
@@ -96,7 +102,7 @@ class raytracer{
             for(int i = 0; i< IMAGE_WIDTH;i++){
             	col.setZero();
             	c.computeRay(j,i,ray);
-            	RayAlg.altTrace(0,1,ray,col,0,100);
+            	RayAlg.bvhTrace(0,1,ray,col,0,100);
             	//int rgb = rgbgen(col.x,col.y,col.z);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);

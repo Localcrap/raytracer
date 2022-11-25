@@ -3,6 +3,99 @@ import java.util.ArrayList;
 
 public class RayAlg {
 
+	public static void bvhTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
+    	double tnear = Double.MAX_VALUE;
+    	RObject robject = null;
+		TriangleMesh tm;
+    	Isect[] hit = new Isect[2];
+		Isect xd =null;
+
+		raytracer.topNode.intersection(ray, tmin, tmax, hit);
+		if(hit[0]!= null){
+			robject = hit[0].prim;
+			tnear = hit[0].t;
+			
+		}
+		
+		
+
+
+    	//TODO: fix repeated code
+		/* 
+    	for(int i = 0; i<raytracer.objects.size();i++) {
+			switch(raytracer.objects.get(i).name()){
+				case SPHERE:
+					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
+						//if(hit[0].t<0){hit[0] = hit[1];}
+						if(hit[0].t < tnear) {
+							xd = hit[0];
+							tnear = hit[0].t;
+							robject = (Sphere)raytracer.objects.get(i);
+						}
+					}
+					break;
+
+
+				case TRIANGLEMESH:
+					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
+						//if(hit[0].t<0){hit[0] = hit[1];}
+						if(hit[0].t < tnear) {
+							xd = hit[0];
+							tnear = hit[0].t;
+							robject = (TriangleMesh)raytracer.objects.get(i);
+						}
+					}
+					break;
+			}
+    		
+    	}
+*/
+
+    	if (robject == null) {
+    		shadeBackground(ray,col);
+    		return;
+    	}
+    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col);
+    	
+    	
+    	//test stuff
+    	Vec3 I  = ray.direction;
+    	
+    	Surf surf;
+    	Ray tray = new Ray();
+		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
+		Vec3 N = robject.normal(P);
+		Vec3 tcol = new Vec3(0,0,0);
+    	
+    	if(level+1 < raytracer.maxlevel) {
+    		tray.origin = P.copy();
+    		
+    		surf = hit[0].prim.getSurf();
+    		/*
+    		if(surf.kspec*weight > raytracer.minweight) {
+    			tray.direction = specularDirection(I,N);
+    			trace(level+1,surf.kspec*weight,tray,tcol);
+    			col.setValuesV(tcol.addS(surf.kspec, col));
+    			
+    		}
+    		
+    		if(surf.ktran*weight> raytracer.minweight) {
+    			if(TransmissionDirection(hit,I,N,tray)) {
+    				altTrace(level+1,surf.ktran*weight,tray,tcol);
+    				col.setValuesV( tcol.addS(surf.ktran, col));
+    				
+    			}
+    		}
+    		*/
+    		
+    	}
+    	
+    	
+    	
+    	
+    	
+    	
+    }
 
     public static void altTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
     	double tnear = Double.MAX_VALUE;
@@ -11,27 +104,27 @@ public class RayAlg {
     	Isect[] hit = new Isect[2];
 		Isect xd =null;
     	//TODO: fix repeated code
-    	for(int i = 0; i<raytracer.objects.length;i++) {
-			switch(raytracer.objects[i].name()){
+    	for(int i = 0; i<raytracer.objects.size();i++) {
+			switch(raytracer.objects.get(i).name()){
 				case SPHERE:
-					if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)>0) {
+					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
 							xd = hit[0];
 							tnear = hit[0].t;
-							robject = (Sphere)raytracer.objects[i];
+							robject = (Sphere)raytracer.objects.get(i);
 						}
 					}
 					break;
 
 
 				case TRIANGLEMESH:
-					if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)>0) {
+					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
 						//if(hit[0].t<0){hit[0] = hit[1];}
 						if(hit[0].t < tnear) {
 							xd = hit[0];
 							tnear = hit[0].t;
-							robject = (TriangleMesh)raytracer.objects[i];
+							robject = (TriangleMesh)raytracer.objects.get(i);
 						}
 					}
 					break;
@@ -137,7 +230,7 @@ public class RayAlg {
         		
         		refldir.normalize();
         		 //colour;
-        		altTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
+        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
     		}
 
     		
@@ -149,7 +242,7 @@ public class RayAlg {
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
     			Vec3 refrdir = ray.direction.mult(eta).add(nhit.mult(eta*cosi-Math.sqrt(k)));
     			refrdir.normalize();
-    			altTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction,tmin,tmax);
+    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction,tmin,tmax);
     			
     			
     		}
@@ -163,21 +256,21 @@ public class RayAlg {
     		
     	}
     	else {
-    		for(int i = 0;i< raytracer.objects.length;i++) {
-    			if(raytracer.objects[i] != robject && raytracer.objects[i].getSurf().emission_colour != null) {
+    		for(int i = 0;i< raytracer.objects.size;i++) {
+    			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
-    				Vec3 lightDirection = ((Sphere)raytracer.objects[i]).center.sub(phit);
+    				Vec3 lightDirection = ((Sphere)raytracer.objects.get(i)).center.sub(phit);
     				lightDirection.normalize();
-    				for(int j = 0;j<raytracer.objects.length;j++) {
+    				for(int j = 0;j<raytracer.objects.size();j++) {
     					if(i!=j) {
-    						if(raytracer.objects[j].intersection(new Ray(phit.add(nhit.mult(bias)),lightDirection),tmin,tmax, hit)>0) {
+    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)),lightDirection),tmin,tmax, hit)>0) {
     							transmission.setZero();;
     							break;
     						}
     					}
     				}
     				col.setValuesV(col.add(surf.colour.mult(transmission).mult
-    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.objects[i].getSurf().emission_colour)      ));
+    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.objects.get(i).getSurf().emission_colour)      ));
     				
     			}
     		}
@@ -228,8 +321,8 @@ public class RayAlg {
 		Isect[] hit = new Isect[raytracer.ISECTMAX];
 		int hitpos = 0;
 		
-		for( int i = 0; i<raytracer.objects.length;i++) {
-			if(raytracer.objects[i].intersection(ray,tmin,tmax, hit)== 0) {
+		for( int i = 0; i<raytracer.objects.size();i++) {
+			if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)== 0) {
 				return 1.;
 			}
 			if( hit[0].t > raytracer.rayeps) {

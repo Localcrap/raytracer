@@ -38,7 +38,7 @@ class raytracer{
     public static void main(String args[]) {
         //Matrix m = new Matrix(IMAGE_HIGHT, IMAGE_WIDTH);
         Camera c;
-        Vec3 pos = new Vec3(0,0,20), dir = new Vec3(0,0,0);
+        Vec3 pos = new Vec3(0,0,0), dir = new Vec3(0,0,0);
         
         c = new Camera(pos,60,dir,IMAGE_WIDTH,IMAGE_HIGHT);
         setupObjects();
@@ -102,7 +102,7 @@ class raytracer{
             for(int i = 0; i< IMAGE_WIDTH;i++){
             	col.setZero();
             	c.computeRay(j,i,ray);
-            	RayAlg.bvhTrace(0,1,ray,col,0.00000001,1000000);
+            	RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
             	//int rgb = rgbgen(col.x,col.y,col.z);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);

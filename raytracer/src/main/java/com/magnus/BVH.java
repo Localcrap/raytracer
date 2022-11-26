@@ -8,10 +8,10 @@ public class BVH {
     }
     public boolean slowIntersection(Ray r, Double tmin, double tmax, Isect[] hit){
         for(int a=0;a<3;a++){
-            double t0 = Math.min(minimun.itterate(a) -r.origin.itterate(a) / r.direction.itterate(a),
-            maximum.itterate(a) -r.origin.itterate(a) / r.direction.itterate(a));
-            double t1 = Math.max(minimun.itterate(a) -r.origin.itterate(a) / r.direction.itterate(a),
-            maximum.itterate(a) -r.origin.itterate(a) / r.direction.itterate(a));
+            double t0 = Math.min((minimun.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a),
+            (maximum.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a));
+            double t1 = Math.max((minimun.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a),
+            (maximum.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a));
 
             tmin = Math.max(t0, tmin);
             tmax = Math.min(t1,tmax);
@@ -24,20 +24,22 @@ public class BVH {
     
     //int intersection test based on Andrew Kenslers approach
     public boolean intersection(Ray r,Double tmin,double tmax, Isect[] hit ){
+        double min,max; 
+
         for(int a=0;a<3;a++){
             //i hate this
             double invD = 1.0 / r.direction.itterate(a);
-            double t0 = (min().itterate(a) - (r.origin.itterate(a))*invD);
-            double t1 = (maximum.itterate(a)- (r.origin.itterate(a))* invD);
+            double t0 = ((min().itterate(a) - r.origin.itterate(a))*invD);
+            double t1 = ((maximum.itterate(a)- (r.origin.itterate(a)))* invD);
             if(invD < 0.0f){
                 double temp = t0;
                 t0 =t1;
                 t1 = temp;
 
             }
-            tmin = t0>tmin ? t0 : tmin;
-            tmax = t1 < tmax ? t1 : tmax;
-            if(tmax <= tmin){
+            min = t0>tmin ? t0 : tmin;
+            max = t1 < tmax ? t1 : tmax;
+            if(max <= min){
                 return false;
 
             }

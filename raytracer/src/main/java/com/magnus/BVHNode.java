@@ -11,7 +11,7 @@ public class BVHNode  implements RObject{
 
     @Override
     public int intersection(Ray ray,double tmin,double tmax, Isect[] hit) {
-        boolean test = !box.slowIntersection(ray,tmin,tmax, hit);
+        boolean test = !box.intersection(ray,tmin,tmax, hit);
         if(test){
             //TODO:re-enable test;
             return 0;
@@ -66,7 +66,7 @@ public class BVHNode  implements RObject{
         RObject objects[] = new RObject[objectSpan];
         System.arraycopy(srcObjects, start, objects, 0, objectSpan);
 
-        int axis = 0;//getRandomNumber(0,2);
+        int axis = getRandomNumber(0,2);
         if (objectSpan == 1){
             left = right = objects[0];
 

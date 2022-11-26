@@ -9,7 +9,7 @@ public class RayAlg {
 		TriangleMesh tm;
     	Isect[] hit = new Isect[2];
 		Isect xd =null;
-
+		
 		raytracer.topNode.intersection(ray, tmin, tmax, hit);
 		if(hit[0]!= null){
 			robject = hit[0].prim;

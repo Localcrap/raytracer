@@ -16,8 +16,8 @@ class raytracer{
 
 
     public final static int MAX_RAY_DEPTH = 99;
-    public final static int IMAGE_HIGHT = 500;
-    public final static int IMAGE_WIDTH = 500;
+    public final static int IMAGE_HIGHT = 1000;
+    public final static int IMAGE_WIDTH = 1000;
     public final static int ISECTMAX = 100;
     public Comp modelroot;
     
@@ -102,7 +102,7 @@ class raytracer{
             for(int i = 0; i< IMAGE_WIDTH;i++){
             	col.setZero();
             	c.computeRay(j,i,ray);
-            	RayAlg.bvhTrace(0,1,ray,col,0,100);
+            	RayAlg.bvhTrace(0,1,ray,col,0.00000001,1000000);
             	//int rgb = rgbgen(col.x,col.y,col.z);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);

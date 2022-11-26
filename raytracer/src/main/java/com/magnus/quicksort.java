@@ -68,6 +68,16 @@ class GFG {
 			System.out.print(" " + arr[i]);
 		System.out.println();
 	}
+	static void shitSort(RObject[] arr, int len, int axis){
+		for (int i=0;i<len-1;++i){
+
+            for(int j=0;j<len-i-1; ++j){
+				if(box_compare(arr[j+1], arr[j], axis)){
+					swap(arr, j+1, j);
+				}
+			}
+		}
+	}
 
 	static boolean box_compare(RObject a, RObject b, int axis){
 		BVHValues boxA =new BVHValues(0, 0, null);

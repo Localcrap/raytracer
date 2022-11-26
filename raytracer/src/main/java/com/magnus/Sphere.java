@@ -47,12 +47,14 @@ public class Sphere implements RObject{
 		}
 		t1 = b-disc;
 		//test if object is closer then already observed object
+		
 		if(hit[0] !=null){
-			if(hit[0].t < t1 && hit[0].t < t2){
+			if(hit[0].t < t1 || hit[0].t < t2){
 				//TODO: should this return 1 even if the result is not stored?
 				return 0;
 			}
 		}
+		
 
 		if(t1>raytracer.rayeps) {
 			//entering sphere

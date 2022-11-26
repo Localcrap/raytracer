@@ -27,9 +27,8 @@ public class BVH {
         double min,max; 
 
         for(int a=0;a<3;a++){
-            //i hate this
             double invD = 1.0 / r.direction.itterate(a);
-            double t0 = ((min().itterate(a) - r.origin.itterate(a))*invD);
+            double t0 = ((minimun.itterate(a) - r.origin.itterate(a))*invD);
             double t1 = ((maximum.itterate(a)- (r.origin.itterate(a)))* invD);
             if(invD < 0.0f){
                 double temp = t0;

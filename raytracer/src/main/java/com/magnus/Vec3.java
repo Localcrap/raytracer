@@ -92,6 +92,9 @@ public class Vec3 {
 	public Vec3 inv(){
 		return new Vec3(-x,-y,-z);
 	}
+	public Vec3 div(int i){
+		return new Vec3(x/i, y/i, z/i);
+	}
 	public double itterate(int i){
         switch (i) {
             case 0:
@@ -107,6 +110,23 @@ public class Vec3 {
 				throw new  NullPointerException("out of bounds");
         }
     }
+	public static Vec3 random(){
+		return new Vec3(Math.random(),Math.random(),Math.random());
+	}
+	public static Vec3 random(int min,int max ){
+		return new Vec3(raytracer.getRandomNumber(min, max),
+			raytracer.getRandomNumber(min, max),raytracer.getRandomNumber(min, max));
+	}
+	public static Vec3 randomInUnitSphere(){
+		Vec3 v;
+		while(true){
+			v = random(-1,1);
+			if(v.length2()<1){
+				return v;
+			}
+
+		}
+	}
 	
 	
 }

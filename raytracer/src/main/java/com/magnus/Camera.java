@@ -31,7 +31,7 @@ public class Camera {
 
     }
 
-    public Ray computeRay(int j,int i, Ray r){
+    public Ray computeRay(double j,double i, Ray r){
         //first we set the origin of the ray to be equal to that of this class
         r.origin = origin;
         double xx = (2 * ((i + 0.5) * invWidth) - 1) * angle * aspectratio; 

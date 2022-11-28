@@ -230,6 +230,7 @@ public class RayAlg {
         		
         		refldir.normalize();
         		 //colour;
+
         		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
     		}
 
@@ -256,6 +257,12 @@ public class RayAlg {
     		
     	}
     	else {
+			Vec3 target = hit[0].
+			Vec3 bounce = new Vec3(0);
+
+
+
+			/* 
     		for(int i = 0;i< raytracer.objects.size;i++) {
     			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
@@ -274,6 +281,7 @@ public class RayAlg {
     				
     			}
     		}
+			*/
     	}
     	if(surf.emission_colour != null) {
     		col.setValuesV(col.add(surf.emission_colour));

@@ -17,21 +17,22 @@ class raytracer{
 
 
     public final static int MAX_RAY_DEPTH = 99;
-    public final static int IMAGE_HIGHT = 1000;
-    public final static int IMAGE_WIDTH = 1000;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
 	public final static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 100;
-	public final static int PIXEL_SAMPLES = 10;
+	public final static int PIXEL_SAMPLES = 100;
 	public static Camera c;
     public Comp modelroot;
     
-    public static int maxlevel = 20; 
+    public static int maxlevel = 50; 
     public static double minweight = 0.001;
     public static double rayeps  = 0.0000001;
     //objects should for optimization reasons be sorted after closest proximity to camera point
     public static ROList objects;
 	public static BVHNode topNode;
+	public static ROList lights;
 	//public static TriangleMesh[] trMesh = new TriangleMesh[10];
     //public static Sphere[] lightSources = new Sphere[1];
     
@@ -62,16 +63,21 @@ class raytracer{
     
     private static void setupObjects() {
         objects = new ROList();
+		lights = new ROList();
         
         objects.add( new Sphere(10000,new Vec3( 0, -10004, -20),
             new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null));
-        objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+
+		lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
+
+		lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
             new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
 
         objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null));
-		objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
-		objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
-		objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
+		//objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
+		//objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
+		//objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
 
 
         
@@ -91,7 +97,7 @@ class raytracer{
 			
 		if(THREAD_COUNT == 0){
 			start = System.currentTimeMillis();
-			seqTrace();
+			seqTrace(0,IMAGE_WIDTH,0, IMAGE_HIGHT);
 			stop = System.currentTimeMillis();
 			System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
 		}
@@ -190,18 +196,25 @@ class raytracer{
 		//return ((x)<<16)|((y)<<8)|(z);
 	}
 	*/
-	public static void seqTrace(){
+	public static void seqTrace(int widthStart, int widthStop, int hightStart,int hightStop){
 		int test= 0;
     	RayAlg ra = new RayAlg();
         Ray ray = new Ray();
         Vec3 col = new Vec3(0,0,0);
 
-        for(int j = 0; j< IMAGE_HIGHT;j++){
-            for(int i = 0; i< IMAGE_WIDTH;i++){
-            	col.setZero();
-            	raytracer.c.computeRay(j,i,ray);
-            	RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
-            	//int rgb = rgbgen(col.x,col.y,col.z);
+        for(int j = hightStart; j< hightStop;j++){
+            for(int i = widthStart; i< widthStop;i++){
+				
+				Vec3 tempcol = new Vec3(0);
+				for(int s =0; s<raytracer.PIXEL_SAMPLES;s++){
+					col.setZero();
+					raytracer.c.computeRay(Double.valueOf(j) +Math.random(),Double.valueOf(i)+Math.random(),ray);
+					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
+					tempcol = tempcol.add(col);
+					//int rgb = rgbgen(col.x,col.y,col.z);
+
+				}
+				col = tempcol.div(raytracer.PIXEL_SAMPLES);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);
 				g =(int) Math.min(col.y*255.0, 255);
@@ -209,8 +222,10 @@ class raytracer{
 				raytracer.framebuffer[i*3][j] = (byte)r;
 				raytracer.framebuffer[i*3+1][j] = (byte)b;
 				raytracer.framebuffer[i*3+2][j] = (byte)g;
+
             }
         }
+
 	}
     
     public static Vec3 rayPoint(Ray ray,double t) {
@@ -221,6 +236,7 @@ class raytracer{
     public static double getRandomNumber(double min, double max) {
         return ((Math.random() * (max - min)) + min);
     }
+
 
     /*
     public static void sortObjects() {
@@ -254,35 +270,7 @@ class RTread implements Runnable{
 
 	@Override
 	public void run() {
-		int test= 0;
-    	RayAlg ra = new RayAlg();
-        Ray ray = new Ray();
-        Vec3 col = new Vec3(0,0,0);
-
-        for(int j = hightStart; j< hightStop;j++){
-            for(int i = widthStart; i< widthStop;i++){
-				
-				Vec3 tempcol = new Vec3(0);
-				for(int s =0; s<raytracer.PIXEL_SAMPLES;s++){
-					col.setZero();
-					raytracer.c.computeRay(Double.valueOf(j) +Math.random(),Double.valueOf(i)+Math.random(),ray);
-					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
-					tempcol = tempcol.add(col);
-					//int rgb = rgbgen(col.x,col.y,col.z);
-
-				}
-				col = tempcol.div(raytracer.PIXEL_SAMPLES);
-				int r,g,b;
-				r =(int) Math.min(col.x*255.0, 255);
-				g =(int) Math.min(col.y*255.0, 255);
-				b =(int) Math.min(col.z*255.0, 255);
-				raytracer.framebuffer[i*3][j] = (byte)r;
-				raytracer.framebuffer[i*3+1][j] = (byte)b;
-				raytracer.framebuffer[i*3+2][j] = (byte)g;
-
-            }
-        }
-
+		raytracer.seqTrace(widthStart, widthStop, hightStart, hightStop);
 	}
 	
 }

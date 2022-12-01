@@ -4,6 +4,9 @@ import java.util.ArrayList;
 public class RayAlg {
 
 	public static void bvhTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
+		if(level >= raytracer.maxlevel){
+			return;
+		}
     	double tnear = Double.MAX_VALUE;
     	RObject robject = null;
 		TriangleMesh tm;
@@ -17,40 +20,6 @@ public class RayAlg {
 			
 		}
 		
-		
-
-
-    	//TODO: fix repeated code
-		/* 
-    	for(int i = 0; i<raytracer.objects.size();i++) {
-			switch(raytracer.objects.get(i).name()){
-				case SPHERE:
-					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
-						//if(hit[0].t<0){hit[0] = hit[1];}
-						if(hit[0].t < tnear) {
-							xd = hit[0];
-							tnear = hit[0].t;
-							robject = (Sphere)raytracer.objects.get(i);
-						}
-					}
-					break;
-
-
-				case TRIANGLEMESH:
-					if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)>0) {
-						//if(hit[0].t<0){hit[0] = hit[1];}
-						if(hit[0].t < tnear) {
-							xd = hit[0];
-							tnear = hit[0].t;
-							robject = (TriangleMesh)raytracer.objects.get(i);
-						}
-					}
-					break;
-			}
-    		
-    	}
-*/
-
     	if (robject == null) {
     		shadeBackground(ray,col);
     		return;
@@ -257,31 +226,29 @@ public class RayAlg {
     		
     	}
     	else {
-			Vec3 target = hit[0].
-			Vec3 bounce = new Vec3(0);
 
-
-
-			/* 
-    		for(int i = 0;i< raytracer.objects.size;i++) {
-    			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
+			Vec3 P = raytracer.rayPoint(ray,hit[0].t);
+			Vec3 N = robject.normal(P);
+			
+    		for(int i = 0;i< raytracer.lights.size;i++) {
+    			if(raytracer.lights.get(i) != robject && raytracer.lights.get(i).getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
-    				Vec3 lightDirection = ((Sphere)raytracer.objects.get(i)).center.sub(phit);
+    				Vec3 lightDirection = ((Sphere)raytracer.lights.get(i)).center.sub(phit);
     				lightDirection.normalize();
     				for(int j = 0;j<raytracer.objects.size();j++) {
-    					if(i!=j) {
-    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)),lightDirection),tmin,tmax, hit)>0) {
+    					if(raytracer.objects.get(j) != raytracer.lights.get(i)) {
+    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)).add(N).add(Vec3.randomInUnitSphere()),lightDirection),tmin,tmax, hit)>0) {
     							transmission.setZero();;
     							break;
     						}
     					}
     				}
     				col.setValuesV(col.add(surf.colour.mult(transmission).mult
-    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.objects.get(i).getSurf().emission_colour)      ));
+    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.lights.get(i).getSurf().emission_colour)      ));
     				
     			}
     		}
-			*/
+			
     	}
     	if(surf.emission_colour != null) {
     		col.setValuesV(col.add(surf.emission_colour));
@@ -303,6 +270,20 @@ public class RayAlg {
 	public void diffuse(){
 		
 	}
+
+	public static void lambertianReflectance(int level,int weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Colour col){
+		Vec3 bounce = new Vec3(0);
+		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
+		Vec3 N = robject.normal(P);
+		Vec3 dir = P.add(N).add(Vec3.randomInUnitSphere());
+		Ray target = new Ray(P, dir);
+		bvhTrace(level+1, weight, target, bounce, tmin, tmax);
+		col.setValuesV(col.add(bounce.mult(0.5)));
+
+		 
+	}
+
+
 	public static void altShade(Vec3 col){
 
 	}

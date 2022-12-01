@@ -92,7 +92,7 @@ public class Vec3 {
 	public Vec3 inv(){
 		return new Vec3(-x,-y,-z);
 	}
-	public Vec3 div(int i){
+	public Vec3 div(double i){
 		return new Vec3(x/i, y/i, z/i);
 	}
 	public double itterate(int i){
@@ -117,6 +117,9 @@ public class Vec3 {
 		return new Vec3(raytracer.getRandomNumber(min, max),
 			raytracer.getRandomNumber(min, max),raytracer.getRandomNumber(min, max));
 	}
+	public  Vec3 unitVector(){
+		return this.div(length());
+	}
 	public static Vec3 randomInUnitSphere(){
 		Vec3 v;
 		while(true){
@@ -127,6 +130,9 @@ public class Vec3 {
 
 		}
 	}
-	
+
+	public static Vec3 randomUnitVector(){
+		return randomInUnitSphere().unitVector();
+	}
 	
 }

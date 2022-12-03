@@ -76,7 +76,7 @@ public class Vec3 {
 	public Vec3 comb(double a,Vec3 B,double b ) {
 		return new Vec3(a*x+b*B.x,a*y+b*B.y,a*z+b*B.z);
 	}
-	public void setValues(int x,int y,int z) {
+	public void setValues(double x,double y,double z) {
 		this.x= x; 
 		this.y=y;
 		this.z= z;

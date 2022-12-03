@@ -62,7 +62,7 @@ public class ROList implements RObject {
     }
 
     @Override
-    public Vec3 normal(Vec3 p) {
+    public Vec3 normal(Vec3 p, int tri) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -99,6 +99,11 @@ public class ROList implements RObject {
         
 
         return true;
+    }
+    @Override
+    public Vec3 getCenter() {
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

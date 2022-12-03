@@ -250,12 +250,17 @@ public class TriangleMesh implements RObject{
 		return new TriangleMesh(npolys,vertsIndex, faceIndex, P, N, st, surf);
 	}
 
+	
 	@Override
-	public Vec3 normal(Vec3 p) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	public Vec3 normal(Vec3 p, int triIndex) {
+
+		/* 
+		Vec3 n0 = N[triIndex * 3]; 
+        Vec3 n1 = N[triIndex * 3 + 1]; 
+        Vec3 n2 = N[triIndex * 3 + 2]; 
+        Vec3 hitNormal2 =  (1 - uv.x - uv.y) * n0 + uv.x * n1 + uv.y * n2;  
+		*/
+		
 		Vec3 v0 = P[trisIndex[triIndex * 3]]; 
         Vec3 v1 = P[trisIndex[triIndex * 3 + 1]]; 
         Vec3 v2 = P[trisIndex[triIndex * 3 + 2]]; 
@@ -271,18 +276,43 @@ public class TriangleMesh implements RObject{
 	}
 	@Override
 	public raytracer.test name() {
-		// TODO Auto-generated method stub
 		return raytracer.test.TRIANGLEMESH;
 	}
 	@Override
 	public Surf getSurf() {
-		// TODO Auto-generated method stub
 		return surf;
 	}
 	@Override
 	public boolean boundingBox(BVHValues v) {
-		// TODO Auto-generated method stub
+		double xmin = P[0].x,xmax = P[0].x, ymin = P[0].y ,ymax= P[0].y, zmin = P[0].z,zmax = P[0].z;
+		for(int i = 1;i<P.length;i++){
+			if(P[i].x <xmin){
+				xmin  = P[i].x;
+			}
+			else if(P[i].x >xmax){
+				xmax = P[i].x;
+			}
+			if(P[i].x <ymin){
+				ymin  = P[i].y;
+			}
+			else if(P[i].x >ymax){
+				ymax = P[i].y;
+			}
+			if(P[i].x <zmin){
+				zmin  = P[i].z;
+			}
+			else if(P[i].x >zmax){
+				zmax = P[i].z;
+			}
+		}
+		v.outputBox = new BVH(new Vec3(xmin,ymin,zmin),new Vec3(xmax, ymax, zmax));
+
 		return false;
+	}
+	@Override
+	public Vec3 getCenter() {
+		//just picking a random point for now;
+		return P[0];
 	}
 
 }

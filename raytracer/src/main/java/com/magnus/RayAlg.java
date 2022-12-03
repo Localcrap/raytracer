@@ -33,7 +33,7 @@ public class RayAlg {
     	Surf surf;
     	Ray tray = new Ray();
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-		Vec3 N = robject.normal(P);
+		Vec3 N = robject.normal(P,0);
 		Vec3 tcol = new Vec3(0,0,0);
     	
     	if(level+1 < raytracer.maxlevel) {
@@ -109,12 +109,13 @@ public class RayAlg {
     	
     	
     	//test stuff
+		/* 
     	Vec3 I  = ray.direction;
     	
     	Surf surf;
     	Ray tray = new Ray();
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-		Vec3 N = robject.normal(P);
+		Vec3 N = robject.normal(P,0);
 		Vec3 tcol = new Vec3(0,0,0);
     	
     	if(level+1 < raytracer.maxlevel) {
@@ -138,7 +139,8 @@ public class RayAlg {
     		}
     		*/
     		
-    	}
+    	//}
+		
     	
     	
     	
@@ -151,7 +153,7 @@ public class RayAlg {
     }
     
     private static void shadeBackground(Ray ray, Vec3 col) {
-		col.setValues(2, 2,2 );
+		col.setValues(0.5, 0.5,0.5 );
 		
 	}
 	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
@@ -159,17 +161,7 @@ public class RayAlg {
 		col.setZero();
     	Vec3 phit = ray.origin.add(ray.direction.mult(tnear));
 		Vec3 nhit = null;
-		switch(robject.name()){
-			case SPHERE:
-				nhit= robject.normal(phit);
-				break;
-			case TRIANGLEMESH:
-				nhit= ((TriangleMesh)robject).normal(phit,xd.indexTriangle);
-				break;
-			default:
-				assert(false);
-				break;
-		}
+		nhit= robject.normal(phit,hit[0].indexTriangle);
     	
     	//nhit.normalize();
 		Surf surf =  robject.getSurf();
@@ -206,7 +198,7 @@ public class RayAlg {
     		
     		
     		//do refraction
-    		if(surf.ktlucence>0) {
+    		else if(surf.ktlucence>0) {
     			double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
     			double cosi = -nhit.dot(ray.direction);
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
@@ -228,26 +220,29 @@ public class RayAlg {
     	else {
 
 			Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-			Vec3 N = robject.normal(P);
+			Vec3 N = robject.normal(P,hit[0].indexTriangle);
+
+			//lambertianReflectance(level,weight,tmin,tmax,ray,hit,robject,col);
 			
-    		for(int i = 0;i< raytracer.lights.size;i++) {
-    			if(raytracer.lights.get(i) != robject && raytracer.lights.get(i).getSurf().emission_colour != null) {
+    		for(int i = 0;i< raytracer.objects.size;i++) {
+    			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
-    				Vec3 lightDirection = ((Sphere)raytracer.lights.get(i)).center.sub(phit);
+    				Vec3 lightDirection = (raytracer.objects.get(i)).getCenter().sub(phit);
     				lightDirection.normalize();
     				for(int j = 0;j<raytracer.objects.size();j++) {
-    					if(raytracer.objects.get(j) != raytracer.lights.get(i)) {
-    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)).add(N).add(Vec3.randomInUnitSphere()),lightDirection),tmin,tmax, hit)>0) {
+    					if(raytracer.objects.get(j) != raytracer.objects.get(i)) {
+    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)).add(N).add(Vec3.randomUnitVector()),lightDirection),tmin,tmax, hit)>0) {
     							transmission.setZero();;
     							break;
     						}
     					}
     				}
     				col.setValuesV(col.add(surf.colour.mult(transmission).mult
-    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.lights.get(i).getSurf().emission_colour)      ));
+    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.objects.get(i).getSurf().emission_colour)      ));
     				
     			}
     		}
+			
 			
     	}
     	if(surf.emission_colour != null) {
@@ -271,16 +266,23 @@ public class RayAlg {
 		
 	}
 
-	public static void lambertianReflectance(int level,int weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Colour col){
+	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col){
 		Vec3 bounce = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-		Vec3 N = robject.normal(P);
-		Vec3 dir = P.add(N).add(Vec3.randomInUnitSphere());
+		Vec3 N = robject.normal(P,hit[0].indexTriangle);
+		Vec3 dir = P.add(N).add(Vec3.randomUnitVector());
 		Ray target = new Ray(P, dir);
 		bvhTrace(level+1, weight, target, bounce, tmin, tmax);
-		col.setValuesV(col.add(bounce.mult(0.5)));
+		
+		for(int i = 0;i< raytracer.lights.size;i++) {
+			
+		}
+		col.setValuesV(col.add(bounce.mult(0.5)).mult(hit[0].prim.getSurf().colour));
 
 		 
+	}
+	public static void dioptics(){
+
 	}
 
 
@@ -305,17 +307,17 @@ public class RayAlg {
 	private static Vec3 specularDirection(Vec3 N, Vec3 I) {
 		return N.addS(-2.*I.dot(N), I);
 	}
-	public static double shadow(Ray ray,double tmin,double tmax) {
+	public static int shadow(Ray ray,double tmin,double tmax) {
 		int nhit;
 		Isect[] hit = new Isect[raytracer.ISECTMAX];
 		int hitpos = 0;
 		
 		for( int i = 0; i<raytracer.objects.size();i++) {
 			if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)== 0) {
-				return 1.;
+				return 1;
 			}
 			if( hit[0].t > raytracer.rayeps) {
-				return 1.;
+				return 1;
 			}
 
 		}

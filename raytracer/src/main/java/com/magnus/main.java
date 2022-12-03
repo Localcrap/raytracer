@@ -22,7 +22,7 @@ class raytracer{
     public final static int IMAGE_HIGHT = 250;
     public final static int IMAGE_WIDTH = 250;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 16;
+	public final static int THREAD_COUNT = 0;
     public final static int ISECTMAX = 100;
 	public final static int PIXEL_SAMPLES = 1000;
 	public static Camera c;
@@ -110,10 +110,31 @@ class raytracer{
 
 			
 		if(THREAD_COUNT == 0){
+			Thread t= new Thread(new RTread(0,0,0,0,0));
+			t.start();
+			try {
+				t.join();
+
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			/* 
 			start = System.currentTimeMillis();
-			seqTrace(0,IMAGE_WIDTH,0, IMAGE_HIGHT);
+			int curLine = 0;
+			while(raytracer.line < raytracer.IMAGE_HIGHT){
+				//raytracer.lineLock.lock();
+				if(raytracer.line < raytracer.IMAGE_HIGHT){
+					curLine = raytracer.line;
+					raytracer.line = raytracer.line+1;
+					System.out.println(Integer.toString(curLine));
+					//raytracer.lineLock.unlock();
+					raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
+				}
+			}
 			stop = System.currentTimeMillis();
 			System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
+			*/
 		}
 		else{
 
@@ -134,12 +155,12 @@ class raytracer{
 		Thread[] rt = new Thread[threads];
 
 		for(int i=0;i<(threads/2)-1;i++){
-			rt[i*2]= new Thread(new RTread(i*widthCut,(i+1)*widthCut,0,hightCut));
-			rt[i*2+1]= new Thread( new RTread(i*widthCut,(i+1)*widthCut,hightCut,IMAGE_HIGHT));
+			rt[i*2]= new Thread(new RTread(i*widthCut,(i+1)*widthCut,0,hightCut,i*2));
+			rt[i*2+1]= new Thread( new RTread(i*widthCut,(i+1)*widthCut,hightCut,IMAGE_HIGHT,i*2+1));
 
 		}
-		rt[threads-2]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,0,hightCut));
-		rt[threads-1]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,hightCut,IMAGE_HIGHT));
+		rt[threads-2]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,0,hightCut,threads-2));
+		rt[threads-1]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,hightCut,IMAGE_HIGHT,threads-1));
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Thread construction");
 		start = System.currentTimeMillis();
@@ -275,10 +296,13 @@ class raytracer{
 }
 class RTread implements Runnable{
 
+	int id;
+
 	int widthStart,widthStop;
 	int hightStart,hightStop;
 
-	public RTread(int wstt,int wstp, int hstt,int hstp){
+	public RTread(int wstt,int wstp, int hstt,int hstp,int id){
+		this.id = id;
 		widthStart = wstt;
 		widthStop = wstp;
 		hightStart = hstt;
@@ -293,16 +317,18 @@ class RTread implements Runnable{
 			//raytracer.lineLock.lock();
 			if(raytracer.line < raytracer.IMAGE_HIGHT){
 				curLine = raytracer.line;
-				raytracer.line = raytracer.line+1;
-				System.out.println(Integer.toString(curLine));
+				raytracer.line = raytracer.line+4;
+				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
 				//raytracer.lineLock.unlock();
-				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
+				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+4);
 			}
 		}
 			
 		
 		
 	}
+	
+	
 	
 }
 

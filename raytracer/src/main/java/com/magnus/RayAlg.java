@@ -215,18 +215,19 @@ public class RayAlg {
     			double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
     			double cosi = -nhit.dot(ray.direction);
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
-    			Vec3 refrdir = ray.direction.mult(eta).add(nhit.mult(eta*cosi-Math.sqrt(k)));
+    			Vec3 refrdir = new Vec3(0);
+				ray.direction.mult(eta,refrdir).add(nhit.mult(eta*cosi-Math.sqrt(k),temp),refrdir);
     			refrdir.normalize();
-    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction,tmin,tmax);
+    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias,temp),temp2),refrdir),refraction,tmin,tmax);
     			
     			
     		}
-    		Vec3 temp1, temp2;
-    		temp2 = refraction.mult((1-fresneleffect)*surf.ktlucence);
-    		temp1 = reflection.mult(fresneleffect);
-    		temp1 = temp1.add(temp2);
-    		temp1 = temp1.mult(surf.colour);
-    		col.setValuesV(temp1);
+    		temp2 = refraction.copy();
+			temp2.mult((1-fresneleffect)*surf.ktlucence);
+    		reflection.mult(fresneleffect,temp);
+    		temp.add(temp2);
+    		temp.mult(surf.colour);
+    		col.setValuesV(temp);
     		
     		
     	}

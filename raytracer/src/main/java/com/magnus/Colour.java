@@ -15,7 +15,7 @@ public class Colour extends Vec3 {
 		z = 0;
 	}
 	@Override
-	public Colour add(Vec3 v) {
+	public Colour add(Vec3 v,Vec3 out) {
 		return new Colour(x+v.x,y+v.y,z+v.z);
 	}
 	@Override

@@ -159,7 +159,11 @@ public class RayAlg {
 	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
 
 		col.setZero();
-    	Vec3 phit = ray.origin.add(ray.direction.mult(tnear));
+		Vec3 temp = new Vec3(0);
+		Vec3 temp2 = new Vec3(0);
+		Vec3 temp3 = new Vec3(0);
+    	Vec3 phit = new Vec3(0);
+		ray.origin.add(ray.direction.mult(tnear,temp),phit);
 		Vec3 nhit = null;
 		nhit= robject.normal(phit,hit[0].indexTriangle);
     	
@@ -170,7 +174,7 @@ public class RayAlg {
     	double bias =  0.0001;
     	boolean inside = false;
     	if (ray.direction.dot(nhit)>0) {
-    		nhit = nhit.negate();
+    		nhit.negate();
     		inside = true;
     		
     		
@@ -187,12 +191,13 @@ public class RayAlg {
     		
     		//do reflection
     		if(surf.kspec> 0) {
-        		Vec3  refldir  = ray.direction.sub(nhit.mult(2).mult(ray.direction.dot(nhit)));
+				Vec3  refldir = new Vec3(0);
+        		ray.direction.sub(nhit.mult(2,temp).mult(ray.direction.dot(nhit),temp2),refldir);
         		
         		refldir.normalize();
         		 //colour;
 
-        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
+        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias,temp2),temp),refldir),reflection,tmin,tmax);
     		}
 
     		
@@ -202,18 +207,19 @@ public class RayAlg {
     			double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
     			double cosi = -nhit.dot(ray.direction);
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
-    			Vec3 refrdir = ray.direction.mult(eta).add(nhit.mult(eta*cosi-Math.sqrt(k)));
+    			Vec3 refrdir = new Vec3(0);
+				ray.direction.mult(eta,refrdir).add(nhit.mult(eta*cosi-Math.sqrt(k),temp),refrdir);
     			refrdir.normalize();
-    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias)),refrdir),refraction,tmin,tmax);
+    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias,temp),temp2),refrdir),refraction,tmin,tmax);
     			
     			
     		}
-    		Vec3 temp1, temp2;
-    		temp2 = refraction.mult((1-fresneleffect)*surf.ktlucence);
-    		temp1 = reflection.mult(fresneleffect);
-    		temp1 = temp1.add(temp2);
-    		temp1 = temp1.mult(surf.colour);
-    		col.setValuesV(temp1);
+    		temp2 = refraction.copy();
+			temp2.mult((1-fresneleffect)*surf.ktlucence);
+    		reflection.mult(fresneleffect,temp);
+    		temp.add(temp2);
+    		temp.mult(surf.colour);
+    		col.setValuesV(temp);
     		
     		
     	}

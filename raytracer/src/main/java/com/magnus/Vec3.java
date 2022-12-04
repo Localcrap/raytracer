@@ -38,19 +38,50 @@ public class Vec3 {
 		return  x*v.x+y*v.y+z*v.z;
 
 	}
-	public Vec3 add(Vec3 v) {
-		return new Vec3(x+v.x,y+v.y,z+v.z);
+	public void add(Vec3 v) {
+		x = x+v.x;
+		y = v.y+y;
+		z = v.z+z;
 		
 	}
-	public Vec3 sub(Vec3 v) {
-		return new Vec3(x-v.x,y-v.y,z-v.z);
+	public Vec3 add(Vec3 v, Vec3 out) {
+		out.setValues(x+v.x,y+v.y,z+v.z);
+		return out;
 		
 	}
-	public  Vec3 addS(double t,Vec3 b) {
-		return new Vec3(x*t+b.x,y*t+b.y,z*t+b.z);
+	public void sub(Vec3 v) {
+		x = x-v.x;
+		y = y-v.y;
+		z =  z-v.z;
+		
 	}
-	public  Vec3 negate() {
-		return new Vec3(x*-1,y*-1,z*-1);
+	public Vec3 sub(Vec3 v, Vec3 out) {
+		out.setValues(x-v.x,y-v.y,z-v.z);
+		return out;
+		
+	}
+
+	public  void addS(double t,Vec3 b) {
+		x = x*t+b.x;
+		y = y*t+b.y;
+		z = z*t+b.z;
+		
+	}
+	public  Vec3 addS(double t,Vec3 b,Vec3 out) {
+		out.setValues(x*t+b.x,y*t+b.y,z*t+b.z);
+		return out;
+	}
+
+
+	public  void negate() {
+		x = x*-1;
+		y = y*-1;
+		z = z*-1;
+	}
+
+	public  Vec3 negate(Vec3 out) {
+		out.setValues(x*-1,y*-1,z*-1);
+		return out;
 	}
 	public Vec3 copy() {
 		return new Vec3(x,y,z);
@@ -59,23 +90,46 @@ public class Vec3 {
 		
 		return (x-p.x)*(x-p.x) +(y-p.y)*(y-p.y)+(z-p.z)*(z-p.z) ;
 	}
-	public Vec3 mult(double t) {
-		return new Vec3(x*t,y*t,z*t);
+	public void mult(double t) {
+		x = x*t;
+		y = y*t;
+		z = z*t;
+		
+	}
+	public Vec3 mult(double t,Vec3 out) {
+		out.setValues(x*t,y*t,z*t);
+		return out;
 		
 	}
 	
-	public Vec3 mult(Vec3 t) {
-		return new Vec3(x*t.x,y*t.y,z*t.z);
+	public void mult(Vec3 t) {
+		x = x*t.x;
+		y = y*t.y;
+		z = z*t.z;
 		
 	}
+	public Vec3 mult(Vec3 t, Vec3 out) {
+		out.setValues(x*t.x,y*t.y,z*t.z);
+		return out;
+		
+	}
+	
+
 	public void setZero() {
 		x = 0;
 		y = 0; 
 		z = 0;
 	}
-	public Vec3 comb(double a,Vec3 B,double b ) {
-		return new Vec3(a*x+b*B.x,a*y+b*B.y,a*z+b*B.z);
+	public void comb(double a,Vec3 B,double b ) {
+		x = a*x+b*B.x;
+		y = a*y+b*B.y;
+		z = a*z+b*B.z;
 	}
+	public Vec3 comb(double a,Vec3 B,double b ,Vec3 out) {
+		out.setValues(a*x+b*B.x,a*y+b*B.y,a*z+b*B.z);
+		return out;
+	}
+
 	public void setValues(double x,double y,double z) {
 		this.x= x; 
 		this.y=y;
@@ -86,15 +140,37 @@ public class Vec3 {
 		this.y=v.y;
 		this.z= v.z;
 	}
-	public Vec3 cross(Vec3 v){
-		return new Vec3((y*v.z)-(z*v.y),(z*v.x)-(x*v.z),(x*v.y)-(y*v.x));
+	public void cross(Vec3 v){
+		x = (y*v.z)-(z*v.y);
+		y = (z*v.x)-(x*v.z);
+		z = (x*v.y)-(y*v.x);
 	}
-	public Vec3 inv(){
-		return new Vec3(-x,-y,-z);
+
+	public Vec3 cross(Vec3 v, Vec3 out){
+		out.setValues((y*v.z)-(z*v.y),(z*v.x)-(x*v.z),(x*v.y)-(y*v.x));
+		return out;
 	}
-	public Vec3 div(double i){
-		return new Vec3(x/i, y/i, z/i);
+	public void inv(){
+		x = -x;
+		y = -y;
+		z = -z;
+
+		//return new Vec3(-x,-y,-z);
 	}
+	public Vec3 inv(Vec3 out){
+		out.setValues(-x,-y,-z);
+		return out;
+	}
+	public void div(double i){
+		x = x/i;
+		y = y/i;
+		z = z/i;
+	}
+	public Vec3 div(double i, Vec3 out){
+		out.setValues(x/i, y/i, z/i);
+		return out;
+	}
+
 	public double itterate(int i){
         switch (i) {
             case 0:
@@ -117,8 +193,9 @@ public class Vec3 {
 		return new Vec3(raytracer.getRandomNumber(min, max),
 			raytracer.getRandomNumber(min, max),raytracer.getRandomNumber(min, max));
 	}
-	public  Vec3 unitVector(){
-		return this.div(length());
+	public Vec3 unitVector(){
+		Vec3 v = copy();
+		return v.div(length(),v);
 	}
 	public static Vec3 randomInUnitSphere(){
 		Vec3 v;

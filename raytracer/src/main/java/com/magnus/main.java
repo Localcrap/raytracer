@@ -210,11 +210,11 @@ class raytracer{
 					col.setZero();
 					raytracer.c.computeRay(Double.valueOf(j) +Math.random(),Double.valueOf(i)+Math.random(),ray);
 					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
-					tempcol = tempcol.add(col);
+					tempcol.add(col);
 					//int rgb = rgbgen(col.x,col.y,col.z);
 
 				}
-				col = tempcol.div(raytracer.PIXEL_SAMPLES);
+				tempcol.div(raytracer.PIXEL_SAMPLES, col);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);
 				g =(int) Math.min(col.y*255.0, 255);
@@ -229,7 +229,8 @@ class raytracer{
 	}
     
     public static Vec3 rayPoint(Ray ray,double t) {
-    	return ray.direction.addS(t, ray.origin);
+		Vec3 temp = new Vec3(0);
+    	return ray.direction.addS(t, ray.origin,temp);
     	
     }
 

@@ -157,7 +157,11 @@ public class RayAlg {
 	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
 
 		col.setZero();
-    	Vec3 phit = ray.origin.add(ray.direction.mult(tnear));
+		Vec3 temp = new Vec3(0);
+		Vec3 temp2 = new Vec3(0);
+		Vec3 temp3 = new Vec3(0);
+    	Vec3 phit = new Vec3(0);
+		ray.origin.add(ray.direction.mult(tnear,temp),phit);
 		Vec3 nhit = null;
 		switch(robject.name()){
 			case SPHERE:
@@ -178,7 +182,7 @@ public class RayAlg {
     	double bias =  0.0001;
     	boolean inside = false;
     	if (ray.direction.dot(nhit)>0) {
-    		nhit = nhit.negate();
+    		nhit.negate();
     		inside = true;
     		
     		
@@ -195,12 +199,13 @@ public class RayAlg {
     		
     		//do reflection
     		if(surf.kspec> 0) {
-        		Vec3  refldir  = ray.direction.sub(nhit.mult(2).mult(ray.direction.dot(nhit)));
+				Vec3  refldir = new Vec3(0);
+        		ray.direction.sub(nhit.mult(2,temp).mult(ray.direction.dot(nhit),temp2),refldir);
         		
         		refldir.normalize();
         		 //colour;
 
-        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias)),refldir),reflection,tmin,tmax);
+        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias,temp2),temp),refldir),reflection,tmin,tmax);
     		}
 
     		

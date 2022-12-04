@@ -95,7 +95,7 @@ public class Sphere implements RObject{
 	
 	
 	@Override
-	public Vec3 normal(Vec3 p) {
+	public Vec3 normal(Vec3 p,int tri) {
 		//Vec3 p,n;
 		Vec3 n;
 		n =  p.sub(center);
@@ -120,6 +120,12 @@ public class Sphere implements RObject{
 	Vec3 temp = new Vec3(radius, radius, radius);
 		v.outputBox = new BVH(center.sub(temp), center.add(temp));
 		return true;
+	}
+
+
+	@Override
+	public Vec3 getCenter() {
+		return center;
 	}
 	
     

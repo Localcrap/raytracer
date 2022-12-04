@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.lang.*;
 
 import javax.imageio.ImageIO;
@@ -15,18 +17,20 @@ class raytracer{
 		SPHERE,TRIANGLEMESH
 	}
 
-
-    public final static int MAX_RAY_DEPTH = 99;
-    public final static int IMAGE_HIGHT = 500;
-    public final static int IMAGE_WIDTH = 500;
+	
+    public final static int MAX_RAY_DEPTH = 10;
+    public final static int IMAGE_HIGHT = 250;
+    public final static int IMAGE_WIDTH = 250;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 16;
+	public final static int THREAD_COUNT = 0;
     public final static int ISECTMAX = 100;
-	public final static int PIXEL_SAMPLES = 100;
+	public final static int PIXEL_SAMPLES = 1000;
 	public static Camera c;
+	public static int line = 0;
+	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
     
-    public static int maxlevel = 50; 
+    public static int maxlevel = 10; 
     public static double minweight = 0.001;
     public static double rayeps  = 0.0000001;
     //objects should for optimization reasons be sorted after closest proximity to camera point
@@ -63,28 +67,38 @@ class raytracer{
     
     private static void setupObjects() {
         objects = new ROList();
-		lights = new ROList();
+		
         
         objects.add( new Sphere(10000,new Vec3( 0, -10004, -20),
             new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null));
 
-		lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+		objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
             new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
 
-		lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
+		objects.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
             new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
+		//red ball
+        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,1.,null));
+		objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
+		objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
+		objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
 
-        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0.5,null));
-		//objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
-		//objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
-		//objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
-
+		//objects.add(TriangleMesh.generatePolySphere(5, 20));
 
         
         BVHNode b = new BVHNode(objects.getList(), 0, objects.size, 0, 100);
 		topNode = b;
-		
 
+		sortLights(objects);
+
+	}
+	public static void sortLights(ROList obj){
+		lights = new ROList();
+		for(int i=0;i<obj.size();i++){
+			if(obj.get(i).getSurf().emission_colour != null){
+				lights.add(obj.get(i));
+			}
+		}
 	}
 
 	public static void alg(Camera c) throws IOException{
@@ -96,10 +110,31 @@ class raytracer{
 
 			
 		if(THREAD_COUNT == 0){
+			Thread t= new Thread(new RTread(0,0,0,0,0));
+			t.start();
+			try {
+				t.join();
+
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			/* 
 			start = System.currentTimeMillis();
-			seqTrace(0,IMAGE_WIDTH,0, IMAGE_HIGHT);
+			int curLine = 0;
+			while(raytracer.line < raytracer.IMAGE_HIGHT){
+				//raytracer.lineLock.lock();
+				if(raytracer.line < raytracer.IMAGE_HIGHT){
+					curLine = raytracer.line;
+					raytracer.line = raytracer.line+1;
+					System.out.println(Integer.toString(curLine));
+					//raytracer.lineLock.unlock();
+					raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
+				}
+			}
 			stop = System.currentTimeMillis();
 			System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
+			*/
 		}
 		else{
 
@@ -120,12 +155,12 @@ class raytracer{
 		Thread[] rt = new Thread[threads];
 
 		for(int i=0;i<(threads/2)-1;i++){
-			rt[i*2]= new Thread(new RTread(i*widthCut,(i+1)*widthCut,0,hightCut));
-			rt[i*2+1]= new Thread( new RTread(i*widthCut,(i+1)*widthCut,hightCut,IMAGE_HIGHT));
+			rt[i*2]= new Thread(new RTread(i*widthCut,(i+1)*widthCut,0,hightCut,i*2));
+			rt[i*2+1]= new Thread( new RTread(i*widthCut,(i+1)*widthCut,hightCut,IMAGE_HIGHT,i*2+1));
 
 		}
-		rt[threads-2]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,0,hightCut));
-		rt[threads-1]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,hightCut,IMAGE_HIGHT));
+		rt[threads-2]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,0,hightCut,threads-2));
+		rt[threads-1]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,hightCut,IMAGE_HIGHT,threads-1));
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Thread construction");
 		start = System.currentTimeMillis();
@@ -197,11 +232,13 @@ class raytracer{
 	}
 	*/
 	public static void seqTrace(int widthStart, int widthStop, int hightStart,int hightStop){
-		int test= 0;
-    	RayAlg ra = new RayAlg();
+		//long start, stop;
+		//start = System.currentTimeMillis();
+		//int test= 0;
+    	//RayAlg ra = new RayAlg();
         Ray ray = new Ray();
         Vec3 col = new Vec3(0,0,0);
-
+		//System.out.println("iterations= " + Integer.toString((hightStop-hightStart)*(widthStop-widthStart)));
         for(int j = hightStart; j< hightStop;j++){
             for(int i = widthStart; i< widthStop;i++){
 				
@@ -225,6 +262,8 @@ class raytracer{
 
             }
         }
+		//stop = System.currentTimeMillis();
+		//System.out.println("Time: "+Long.toString(stop-start)+ " for induvidual thread tracing");
 
 	}
     
@@ -258,10 +297,13 @@ class raytracer{
 }
 class RTread implements Runnable{
 
+	int id;
+
 	int widthStart,widthStop;
 	int hightStart,hightStop;
 
-	public RTread(int wstt,int wstp, int hstt,int hstp){
+	public RTread(int wstt,int wstp, int hstt,int hstp,int id){
+		this.id = id;
 		widthStart = wstt;
 		widthStop = wstp;
 		hightStart = hstt;
@@ -271,19 +313,35 @@ class RTread implements Runnable{
 
 	@Override
 	public void run() {
-		raytracer.seqTrace(widthStart, widthStop, hightStart, hightStop);
+		int curLine = 0;
+		while(raytracer.line < raytracer.IMAGE_HIGHT){
+			//raytracer.lineLock.lock();
+			if(raytracer.line < raytracer.IMAGE_HIGHT){
+				curLine = raytracer.line;
+				raytracer.line = raytracer.line+4;
+				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
+				//raytracer.lineLock.unlock();
+				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+4);
+			}
+		}
+			
+		
+		
 	}
+	
+	
 	
 }
 
 interface RObject{
 	//public Surf surf = null;
 	public int intersection(Ray ray,double tmin, double tmax ,Isect[] hit);
-	public Vec3 normal(Vec3 p);
+	public Vec3 normal(Vec3 p,int triIndex);
 	public boolean read();
 	public raytracer.test name();
 	public Surf getSurf();
 	public boolean boundingBox(BVHValues v);
+	public Vec3 getCenter();
 
 	
 	//might need to add a world to object transform matrix

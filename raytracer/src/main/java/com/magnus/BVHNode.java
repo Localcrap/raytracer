@@ -27,7 +27,7 @@ public class BVHNode  implements RObject{
     
 
     @Override
-    public Vec3 normal(Vec3 p) {
+    public Vec3 normal(Vec3 p,int tri) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -105,6 +105,13 @@ public class BVHNode  implements RObject{
 
     public static int getRandomNumber(int min, int max) {
         return (int) ((Math.random() * (max - min)) + min);
+    }
+
+
+    @Override
+    public Vec3 getCenter() {
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

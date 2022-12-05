@@ -204,7 +204,7 @@ class raytracer{
 					//int rgb = rgbgen(col.x,col.y,col.z);
 
 				}
-				col.div(raytracer.PIXEL_SAMPLES, col);
+				tempcol.div(raytracer.PIXEL_SAMPLES, col);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);
 				g =(int) Math.min(col.y*255.0, 255);

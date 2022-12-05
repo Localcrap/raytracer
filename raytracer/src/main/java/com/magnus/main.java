@@ -318,10 +318,10 @@ class RTread implements Runnable{
 			//raytracer.lineLock.lock();
 			if(raytracer.line < raytracer.IMAGE_HIGHT){
 				curLine = raytracer.line;
-				raytracer.line = raytracer.line+4;
+				raytracer.line = raytracer.line+1;
 				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
 				//raytracer.lineLock.unlock();
-				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+4);
+				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
 			}
 		}
 			

@@ -233,18 +233,19 @@ public class RayAlg {
     		for(int i = 0;i< raytracer.objects.size;i++) {
     			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
     				Vec3 transmission = new Vec3(1);
-    				Vec3 lightDirection = (raytracer.objects.get(i)).getCenter().sub(phit);
+    				Vec3 lightDirection = new Vec3(0);
+					(raytracer.objects.get(i)).getCenter().sub(phit,lightDirection);
     				lightDirection.normalize();
     				for(int j = 0;j<raytracer.objects.size();j++) {
     					if(raytracer.objects.get(j) != raytracer.objects.get(i)) {
-    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias)).add(N).add(Vec3.randomUnitVector()),lightDirection),tmin,tmax, hit)>0) {
+    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias,temp2),temp).add(N,temp).add(Vec3.randomUnitVector(),temp),lightDirection),tmin,tmax, hit)>0) {
     							transmission.setZero();;
     							break;
     						}
     					}
     				}
-    				col.setValuesV(col.add(surf.colour.mult(transmission).mult
-    						(Math.max(0.,nhit.dot(lightDirection))).mult(raytracer.objects.get(i).getSurf().emission_colour)      ));
+    				col.add(surf.colour.mult(transmission,temp2).mult
+    						(Math.max(0.,nhit.dot(lightDirection)),temp).mult(raytracer.objects.get(i).getSurf().emission_colour,temp3 ) );
     				
     			}
     		}
@@ -252,7 +253,7 @@ public class RayAlg {
 			
     	}
     	if(surf.emission_colour != null) {
-    		col.setValuesV(col.add(surf.emission_colour));
+    		col.add(surf.emission_colour);
     	}
 		/*
 		switch (robject.name()) {
@@ -276,14 +277,15 @@ public class RayAlg {
 		Vec3 bounce = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
-		Vec3 dir = P.add(N).add(Vec3.randomUnitVector());
+		Vec3 dir = new Vec3(0);
+		P.add(N,dir).add(Vec3.randomUnitVector());
 		Ray target = new Ray(P, dir);
 		bvhTrace(level+1, weight, target, bounce, tmin, tmax);
 		
 		for(int i = 0;i< raytracer.lights.size;i++) {
 			
 		}
-		col.setValuesV(col.add(bounce.mult(0.5)).mult(hit[0].prim.getSurf().colour));
+		col.add(bounce.mult(0.5,bounce),col).mult(hit[0].prim.getSurf().colour);
 
 		 
 	}
@@ -296,6 +298,7 @@ public class RayAlg {
 
 	}
     //based on Heckbert-Hanranhan84
+	/* 
     private static boolean TransmissionDirection(Isect[] hit, Vec3 I, Vec3 N, Ray tray) {
 		double n1, n2, eta, c1, cs2;
 		n1 = hit[0] != null && hit[0].medium != null ? hit[0].medium.refrindex : 1.;
@@ -310,8 +313,11 @@ public class RayAlg {
 		
 		return false;
 	}
+	*/
 	private static Vec3 specularDirection(Vec3 N, Vec3 I) {
-		return N.addS(-2.*I.dot(N), I);
+		Vec3 sd = N.copy();
+		sd.addS(-2.*I.dot(N), I);
+		return sd;
 	}
 	public static int shadow(Ray ray,double tmin,double tmax) {
 		int nhit;

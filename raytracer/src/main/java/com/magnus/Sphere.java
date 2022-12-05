@@ -32,9 +32,9 @@ public class Sphere implements RObject{
 	@Override public int intersection(Ray ray,double tmin, double tmax,Isect[] hit ) {
 		int nroots;
 		double b,disc,t1,t2;
-		Vec3 v;
+		Vec3 v = new Vec3(0);
 		int hitpos = 0;
-		v = center.sub(ray.origin); // l
+		center.sub(ray.origin,v); // l
 		b = v.dot(ray.direction); //tca
 		disc = b*b-v.dot(v)+radius2;
 		if(disc<= 0) {
@@ -74,7 +74,8 @@ public class Sphere implements RObject{
 	}
 	public double testintersection(Ray r,double distance,Isect[] hit) {
 		
-		Vec3 l = center.sub(r.origin);
+		Vec3 l = center.copy();
+		l.sub(r.origin);
 		double tca = l.dot(r.direction);
 		if(tca< 0 ) {
 			return 0;
@@ -97,8 +98,8 @@ public class Sphere implements RObject{
 	@Override
 	public Vec3 normal(Vec3 p,int tri) {
 		//Vec3 p,n;
-		Vec3 n;
-		n =  p.sub(center);
+		Vec3 n = p.copy();
+		n.sub(center);
 		n.normalize();
 		return n;
 	}
@@ -117,8 +118,9 @@ public class Sphere implements RObject{
 	}
 	
 	@Override public boolean boundingBox(BVHValues v) {
+	Vec3 temp2 = new Vec3(0);
 	Vec3 temp = new Vec3(radius, radius, radius);
-		v.outputBox = new BVH(center.sub(temp), center.add(temp));
+		v.outputBox = new BVH(center.sub(temp,temp2), center.add(temp,temp));
 		return true;
 	}
 

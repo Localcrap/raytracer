@@ -61,9 +61,10 @@ public class TriangleMesh implements RObject{
 	}
 	//møller trombore 
 	public static boolean rayTriangleIntersect(Ray r,Vec3 v0,Vec3 v1,Vec3 v2, double[] u){
-		Vec3 v0v1 = v1.sub(v0);
-		Vec3 v0v2 = v2.sub(v0);
-		Vec3 pvec = r.direction.cross(v0v2);
+		Vec3 v0v1 = new Vec3(0),v0v2 = new Vec3(0),pvec = new Vec3(0);
+		v1.sub(v0,v0v1);
+		v2.sub(v0,v0v2);
+		r.direction.cross(v0v2,pvec);
 		double det = v0v1.dot(pvec);
 		//paralell to triangle?
 		if(Math.abs(det)<kEpsilon){
@@ -71,12 +72,14 @@ public class TriangleMesh implements RObject{
 
 		}
 		double invDet = 1/det;
-		Vec3 tvec = r.origin.sub(v0);
+		Vec3 tvec = new Vec3(0);
+		r.origin.sub(v0,tvec);
 		u[0] = tvec.dot(pvec) * invDet;
 		if ( u[0]<0 || u[0]>1){
 			return false;
 		}
-		Vec3 qvec = tvec.cross(v0v1);
+		Vec3 qvec = new Vec3(0);
+		tvec.cross(v0v1,qvec);
 		u[1] = r.direction.dot(qvec)* invDet;
 		if ( u[1]<0 || u[0]+u[1] >1){
 			return false;
@@ -93,16 +96,16 @@ public class TriangleMesh implements RObject{
 	//alt intersection algorithm following Jeff Arenberg's example
 	public static boolean altRayTriangleIntersect(Ray r,Vec3 v0,Vec3 v1,Vec3 v2, double[] u){
 		
-		Vec3 p0,p1,p2,N;
+		Vec3 p0 = new Vec3(),p1 = new Vec3(),p2 = new Vec3(),N = new Vec3(),temp = new Vec3();
 		Vec3 bb[] = new Vec3[3];
-		p0 = v0.sub(r.origin);
-		p1 = v0.sub(v1); //v0-v1
-		p2 = v0.sub(v2); //v0-v2
-		N = p1.cross(p2); // N
+		v0.sub(r.origin,p0);
+		v0.sub(v1,p1); //v0-v1
+		v0.sub(v2,p2); //v0-v2
+		p1.cross(p2,N); // N
 
-		bb[0] = p1.inv();
-		bb[1] = p2.inv();
-		bb[2] = N.inv();
+		bb[0] = p1.inv(p1);
+		bb[1] = p2.inv(p2);
+		bb[2] = N.inv(N);
 
 
 		double den = r.direction.dot(bb[2]);
@@ -112,14 +115,15 @@ public class TriangleMesh implements RObject{
 		if(den == 0){
 			return false;
 		}
-		double num = p0.sub(r.origin).dot(bb[2]);
+		double num = p0.sub(r.origin, temp).dot(bb[2]);
 		u[1] = num;
 		//if on or behind triangle
 		double t = num/den;
 		if (t <= 0){
 			return false;
 		}
-		Vec3 p = r.direction.mult(t).add(r.origin).sub(p0);
+		Vec3 p = new Vec3();
+		r.direction.mult(t,p).add(r.origin,p).sub(p0);
 		double a,b;
 		a = p.dot(bb[0]);
 		b = p.dot(bb[1]);
@@ -260,11 +264,12 @@ public class TriangleMesh implements RObject{
         Vec3 n2 = N[triIndex * 3 + 2]; 
         Vec3 hitNormal2 =  (1 - uv.x - uv.y) * n0 + uv.x * n1 + uv.y * n2;  
 		*/
-		
+		Vec3 temp = new Vec3();
 		Vec3 v0 = P[trisIndex[triIndex * 3]]; 
         Vec3 v1 = P[trisIndex[triIndex * 3 + 1]]; 
         Vec3 v2 = P[trisIndex[triIndex * 3 + 2]]; 
-        Vec3 hitNormal = (v1.sub(v0)).cross(v2.sub(v0));//(v1 - v0).crossProduct(v2 - v0); 
+        Vec3 hitNormal = new Vec3();
+		 (v1.sub(v0,hitNormal)).cross(v2.sub(v0,temp));//(v1 - v0).crossProduct(v2 - v0); 
         hitNormal.normalize(); 
 
 		return hitNormal;

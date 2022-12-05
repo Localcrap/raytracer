@@ -2,12 +2,7 @@ package com.magnus;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.lang.*;
-
-import javax.imageio.ImageIO;
 
 
 
@@ -19,13 +14,13 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10;
-    public final static int IMAGE_HIGHT = 250;
-    public final static int IMAGE_WIDTH = 250;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 0;
+	public final static int THREAD_COUNT = 1;
     public final static int ISECTMAX = 100;
-	public final static int PIXEL_SAMPLES = 1000;
-	public static Camera c;
+	public final static int PIXEL_SAMPLES = 100	;
+	public static AltCamera c;
 	public static int line = 0;
 	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
@@ -45,7 +40,7 @@ class raytracer{
 
 
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException, InterruptedException {
 		long start,stop;
         //Matrix m = new Matrix(IMAGE_HIGHT, IMAGE_WIDTH);
         //Camera c;
@@ -56,12 +51,9 @@ class raytracer{
         setupObjects();
 		stop =  System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Object construction");
-        try {
-			alg(c);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		alg(c);
+
         
     }
     
@@ -101,7 +93,7 @@ class raytracer{
 		}
 	}
 
-	public static void alg(Camera c) throws IOException{
+	public static void alg(Camera c) throws IOException, InterruptedException{
 		long start,stop;
 
         //BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
@@ -109,58 +101,23 @@ class raytracer{
 
 
 			
-		if(THREAD_COUNT == 0){
-			Thread t= new Thread(new RTread(0,0,0,0,0));
-			t.start();
-			try {
-				t.join();
 
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			/* 
-			start = System.currentTimeMillis();
-			int curLine = 0;
-			while(raytracer.line < raytracer.IMAGE_HIGHT){
-				//raytracer.lineLock.lock();
-				if(raytracer.line < raytracer.IMAGE_HIGHT){
-					curLine = raytracer.line;
-					raytracer.line = raytracer.line+1;
-					System.out.println(Integer.toString(curLine));
-					//raytracer.lineLock.unlock();
-					raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
-				}
-			}
-			stop = System.currentTimeMillis();
-			System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
-			*/
-		}
-		else{
 
 		
 		//make threads pairwize for now
 		int threads = THREAD_COUNT;
-		if(THREAD_COUNT % 2 == 1){
-			threads =threads+1;
-		}
-		int widthCut,hightCut;
+		//int widthCut,hightCut;
 		start = System.currentTimeMillis();
 		if(threads == 0){
 			return ;
 		}
 		
-		widthCut = IMAGE_WIDTH/threads*2;
-		hightCut = IMAGE_HIGHT/2;
 		Thread[] rt = new Thread[threads];
 
-		for(int i=0;i<(threads/2)-1;i++){
-			rt[i*2]= new Thread(new RTread(i*widthCut,(i+1)*widthCut,0,hightCut,i*2));
-			rt[i*2+1]= new Thread( new RTread(i*widthCut,(i+1)*widthCut,hightCut,IMAGE_HIGHT,i*2+1));
+		for(int i=0;i<(threads);i++){
+			rt[i]= new Thread(new RTread(i));
 
 		}
-		rt[threads-2]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,0,hightCut,threads-2));
-		rt[threads-1]= new Thread( new RTread((threads/2-1)*widthCut,IMAGE_WIDTH,hightCut,IMAGE_HIGHT,threads-1));
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Thread construction");
 		start = System.currentTimeMillis();
@@ -169,18 +126,13 @@ class raytracer{
 		}
 
 		for(int i = 0;i<threads;i++){
-			try {
+
 				rt[i].join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			};
 		}
 		
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
 
-		}
 		try {
 			File picture = new File("image.ppm");
 			if(picture.createNewFile()){
@@ -245,13 +197,14 @@ class raytracer{
 				Vec3 tempcol = new Vec3(0);
 				for(int s =0; s<raytracer.PIXEL_SAMPLES;s++){
 					col.setZero();
-					raytracer.c.computeRay(Double.valueOf(j) +Math.random(),Double.valueOf(i)+Math.random(),ray);
+					raytracer.c.computeRay(Math.random()+j,Math.random()+i,ray);
+					
 					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
 					tempcol.add(col);
 					//int rgb = rgbgen(col.x,col.y,col.z);
 
 				}
-				tempcol.div(raytracer.PIXEL_SAMPLES, col);
+				col.div(raytracer.PIXEL_SAMPLES, col);
 				int r,g,b;
 				r =(int) Math.min(col.x*255.0, 255);
 				g =(int) Math.min(col.y*255.0, 255);
@@ -299,15 +252,9 @@ class RTread implements Runnable{
 
 	int id;
 
-	int widthStart,widthStop;
-	int hightStart,hightStop;
-
-	public RTread(int wstt,int wstp, int hstt,int hstp,int id){
+	public RTread(int id){
 		this.id = id;
-		widthStart = wstt;
-		widthStop = wstp;
-		hightStart = hstt;
-		hightStop  =hstp;
+
 
 	}
 
@@ -318,10 +265,10 @@ class RTread implements Runnable{
 			//raytracer.lineLock.lock();
 			if(raytracer.line < raytracer.IMAGE_HIGHT){
 				curLine = raytracer.line;
-				raytracer.line = raytracer.line+1;
+				raytracer.line = raytracer.line+5;
 				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
 				//raytracer.lineLock.unlock();
-				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+1);
+				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+5);
 			}
 		}
 			

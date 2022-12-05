@@ -7,7 +7,9 @@ public class AltCamera extends Camera {
     public AltCamera(Vec3 origin, int fov, Vec3 dir, int width, int height) {
         super(origin, fov, dir, width, height);
         Vec3 temp = new Vec3(0);
-        origin.sub( horizontal.div(2,temp),lower_left_corner).sub(vertical.div(2,temp),lower_left_corner).sub(new Vec3(0, 0, focal_length));
+        origin.sub( horizontal.div(2,temp),lower_left_corner);
+        lower_left_corner.sub(vertical.div(2,temp));
+        lower_left_corner.sub(new Vec3(0, 0, focal_length));
         
         //TODO Auto-generated constructor stub
     }
@@ -34,7 +36,9 @@ public class AltCamera extends Camera {
         double yy = (double)j / (raytracer.IMAGE_HIGHT-1); 
         Vec3 temp = new Vec3(0);
         Vec3 ray = new Vec3(0);
-        lower_left_corner.add(horizontal.mult(xx,temp),ray);//.add(vertical.mult(yy)).sub(origin);
+        lower_left_corner.add(horizontal.mult(xx,temp),ray);
+        ray.add(vertical.mult(yy,temp));
+        ray.sub(origin);
         ray.normalize();
         r.direction = ray;
         

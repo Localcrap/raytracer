@@ -3,7 +3,8 @@ import java.util.ArrayList;
 
 public class RayAlg {
 
-	public static void bvhTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
+	public static void bvhTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax,int id) {
+		long start,stop;
 		if(level >= raytracer.maxlevel){
 			return;
 		}
@@ -12,8 +13,10 @@ public class RayAlg {
 		TriangleMesh tm;
     	Isect[] hit = new Isect[2];
 		Isect xd =null;
-		
+		start = System.currentTimeMillis();
 		raytracer.topNode.intersection(ray, tmin, tmax, hit);
+		stop = System.currentTimeMillis();
+		raytracer.intersectionTime[id] = raytracer.intersectionTime[id] + (stop-start);
 		if(hit[0]!= null){
 			robject = hit[0].prim;
 			tnear = hit[0].t;
@@ -24,8 +27,10 @@ public class RayAlg {
     		shadeBackground(ray,col);
     		return;
     	}
-    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col);
-    	
+		start = System.currentTimeMillis();
+    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col,id);
+    	stop = System.currentTimeMillis();
+		raytracer.shadeTime[id] += (stop-start);
     	
     	//test stuff
     	Vec3 I  = ray.direction;
@@ -66,7 +71,7 @@ public class RayAlg {
     	
     }
 
-    public static void altTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax) {
+    public static void altTrace(int level,double weight ,Ray ray, Vec3 col,double tmin,double tmax,int id) {
     	double tnear = Double.MAX_VALUE;
     	RObject robject = null;
 		TriangleMesh tm;
@@ -105,7 +110,7 @@ public class RayAlg {
     		shadeBackground(ray,col);
     		return;
     	}
-    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col);
+    	shade(level,weight,ray,tnear,tmin,tmax,robject,hit,xd,col,id);
     	
     	
     	//test stuff
@@ -153,16 +158,19 @@ public class RayAlg {
     }
     
     private static void shadeBackground(Ray ray, Vec3 col) {
-		col.setValues(0.5, 0.5,0.5 );
+		col.setValues(5, 5,5 );
 		
 	}
-	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col ) {
-
+	public static void shade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col,int id ) {
+		long start,stop;
 		col.setZero();
+		
 		Vec3 temp = new Vec3(0);
 		Vec3 temp2 = new Vec3(0);
 		Vec3 temp3 = new Vec3(0);
     	Vec3 phit = new Vec3(0);
+		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
+		Vec3 N = robject.normal(P,hit[0].indexTriangle);
 		ray.origin.add(ray.direction.mult(tnear,temp),phit);
 		Vec3 nhit = null;
 		nhit= robject.normal(phit,hit[0].indexTriangle);
@@ -180,7 +188,10 @@ public class RayAlg {
     		
     	}
     	//if not defuse
+		
     	if( ((surf.ktlucence> 0) || (surf.kspec> 0)) &&  level < raytracer.maxlevel) {
+			
+		//if(surf.kspec> 0) {
     		Vec3 reflection = new Vec3(0);
     		Vec3 refraction = new Vec3(0);
     			
@@ -191,32 +202,62 @@ public class RayAlg {
     		
     		//do reflection
     		if(surf.kspec> 0) {
+				start = System.currentTimeMillis();
+				
+				
 				Vec3  refldir = new Vec3(0);
-        		ray.direction.sub(nhit.mult(2,temp).mult(ray.direction.dot(nhit),temp2),refldir);
+        		//ray.direction.sub(nhit.mult(2,temp).mult(ray.direction.dot(nhit),temp2),refldir);
+
+
+				ray.direction.sub(N.mult(2*ray.direction.dot(N),temp), refldir);
+				refldir.add(Vec3.randomInUnitSphere().mult(robject.getSurf().fuzz,temp));
+
         		
         		refldir.normalize();
         		 //colour;
 
-        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias,temp2),temp),refldir),reflection,tmin,tmax);
+        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias,temp2),temp),refldir),reflection,tmin,tmax,id);
+				stop = System.currentTimeMillis();
+				raytracer.reflectionTime[id] += (stop-start);
     		}
 
     		
     		
     		//do refraction
+			
     		else if(surf.ktlucence>0) {
+				start = System.currentTimeMillis();
+				
     			double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
-    			double cosi = -nhit.dot(ray.direction);
+    			double cosi = Math.min(N.dot(ray.direction.negate(temp)),1);
+				Vec3 rOutPerp = new Vec3();
+				ray.direction.add(N.mult(cosi, temp), rOutPerp).mult(surf.ktlucence);
+				Vec3 rOutParalell = new Vec3();
+				N.mult(Math.sqrt(Math.abs(1.0-rOutPerp.length2())), rOutParalell);
+				rOutParalell.add(rOutPerp, refraction);
+
+
+
+				/*
     			double  k = 1 - eta * eta * (1 - cosi * cosi); 
     			Vec3 refrdir = new Vec3(0);
 				ray.direction.mult(eta,refrdir).add(nhit.mult(eta*cosi-Math.sqrt(k),temp),refrdir);
     			refrdir.normalize();
-    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias,temp),temp2),refrdir),refraction,tmin,tmax);
+    			bvhTrace(level+1,weight,new Ray(phit.sub(nhit.mult(bias,temp),temp2),refrdir),refraction,tmin,tmax,id);
+				stop = System.currentTimeMillis();
+				raytracer.refractionTime[id] += stop-start;
+
+				 */
+
     			
     			
     		}
+			
     		temp2 = refraction.copy();
-			temp2.mult((1-fresneleffect)*surf.ktlucence);
-    		reflection.mult(fresneleffect,temp);
+			temp2.mult(surf.ktlucence);
+
+			//TODO:fresnel breaks lamberian for some reason
+    		reflection.mult(1,temp);
     		temp.add(temp2);
     		temp.mult(surf.colour);
     		col.setValuesV(temp);
@@ -224,11 +265,13 @@ public class RayAlg {
     		
     	}
     	else {
+			
+			start = System.currentTimeMillis();
+			lambertianReflectance(level,weight,tmin,tmax,ray,hit,robject,col,id);
+			/* 
+			
 
-			Vec3 P = raytracer.rayPoint(ray,hit[0].t);
-			Vec3 N = robject.normal(P,hit[0].indexTriangle);
-
-			//lambertianReflectance(level,weight,tmin,tmax,ray,hit,robject,col);
+			//
 			
     		for(int i = 0;i< raytracer.objects.size;i++) {
     			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
@@ -249,12 +292,15 @@ public class RayAlg {
     				
     			}
     		}
+			*/
+			stop = System.currentTimeMillis();
+			raytracer.diffuseTime[id]+= stop-start;
 			
 			
     	}
-    	if(surf.emission_colour != null) {
-    		col.add(surf.emission_colour);
-    	}
+    	//if(surf.emission_colour != null) {
+    	//	col.add(surf.emission_colour);
+    	//}
 		/*
 		switch (robject.name()) {
 			case TRIANGLEMESH:
@@ -273,18 +319,24 @@ public class RayAlg {
 		
 	}
 
-	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col){
+	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col,int id){
 		Vec3 bounce = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
 		Vec3 dir = new Vec3(0);
 		P.add(N,dir).add(Vec3.randomUnitVector());
 		Ray target = new Ray(P, dir);
-		bvhTrace(level+1, weight, target, bounce, tmin, tmax);
-		
-		for(int i = 0;i< raytracer.lights.size;i++) {
-			
+		int hits = 0;
+		bvhTrace(level+1, weight, target, bounce, tmin, tmax,id);
+		/*
+		for(int i = 0;i< raytracer.lights.size();i++) {
+			if(raytracer.lights.get(i).intersection(ray, tmin, tmax, hit)>0){
+
+				hits++;
+
+			}
 		}
+		 */
 		col.add(bounce.mult(0.5,bounce),col).mult(hit[0].prim.getSurf().colour);
 
 		 

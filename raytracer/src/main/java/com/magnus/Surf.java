@@ -8,4 +8,5 @@ public class Surf {
 	public double refrindex = 0; // refraction index
 	public double ktlucence = 0;      // translucency coefficient
 	public Vec3 emission_colour = null;
+	public double fuzz;
 }

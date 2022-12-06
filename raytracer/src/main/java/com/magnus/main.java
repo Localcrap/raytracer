@@ -17,13 +17,21 @@ class raytracer{
     public final static int IMAGE_HIGHT = 500;
     public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 1;
+	public final static int THREAD_COUNT = 8;
     public final static int ISECTMAX = 100;
-	public final static int PIXEL_SAMPLES = 100	;
+	public final static int PIXEL_SAMPLES = 50	;
+	public final static double pi = 3.1415926535897932385;
 	public static AltCamera c;
 	public static int line = 0;
 	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
+	public static long intersectionTime[] = new long[THREAD_COUNT];
+	public static long shadeTime[] = new long[THREAD_COUNT];
+	public static long rayTime[] = new long[THREAD_COUNT];
+	public static long reflectionTime[] = new long[THREAD_COUNT];
+	public static long refractionTime[] = new long[THREAD_COUNT];
+	public static long diffuseTime[] = new long[THREAD_COUNT];
+
     
     public static int maxlevel = 10; 
     public static double minweight = 0.001;
@@ -62,15 +70,15 @@ class raytracer{
 		
         
         objects.add( new Sphere(10000,new Vec3( 0, -10004, -20),
-            new Vec3(0.2, 0.2, 0.2), 0, 0,0.0,0,0,null));
+            new Vec3(0.2, 1, 0.2), 0, 0,0.0,0,0,null));
 
-		objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
-            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
+		//objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+        //   new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
 
-		objects.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
-            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
+		//objects.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
+        //    new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(3)));
 		//red ball
-        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,1.,null));
+        //objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,0.001,null));
 		objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
 		objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
 		objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
@@ -133,6 +141,17 @@ class raytracer{
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
 
+		for(int i = 0; i< threads;i++){
+			System.out.println("thread "+ i);
+			System.out.println(" intersection time= "+intersectionTime[i]);
+			System.out.println(" shade time= "+shadeTime[i]);
+			System.out.println(" ray time= "+rayTime[i]);
+			System.out.println(" reflection time= "+reflectionTime[i]);
+			System.out.println(" refraction time= "+refractionTime[i]);
+			System.out.println(" diffuse time= "+diffuseTime[i]);
+
+		}
+
 		try {
 			File picture = new File("image.ppm");
 			if(picture.createNewFile()){
@@ -183,8 +202,8 @@ class raytracer{
 		//return ((x)<<16)|((y)<<8)|(z);
 	}
 	*/
-	public static void seqTrace(int widthStart, int widthStop, int hightStart,int hightStop){
-		//long start, stop;
+	public static void seqTrace(int widthStart, int widthStop, int hightStart,int hightStop,int id){
+		long start, stop;
 		//start = System.currentTimeMillis();
 		//int test= 0;
     	//RayAlg ra = new RayAlg();
@@ -197,18 +216,31 @@ class raytracer{
 				Vec3 tempcol = new Vec3(0);
 				for(int s =0; s<raytracer.PIXEL_SAMPLES;s++){
 					col.setZero();
-					raytracer.c.computeRay(Math.random()+j,Math.random()+i,ray);
 					
-					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000);
+					start = System.currentTimeMillis();
+					raytracer.c.computeRay(Math.random()+j,Math.random()+i,ray);
+					stop = System.currentTimeMillis();
+					rayTime[id] += (stop-start);
+					
+					RayAlg.bvhTrace(0,1,ray,col,-1000000,10000000,id);
 					tempcol.add(col);
 					//int rgb = rgbgen(col.x,col.y,col.z);
 
 				}
-				tempcol.div(raytracer.PIXEL_SAMPLES, col);
-				int r,g,b;
-				r =(int) Math.min(col.x*255.0, 255);
-				g =(int) Math.min(col.y*255.0, 255);
-				b =(int) Math.min(col.z*255.0, 255);
+				
+				//tempcol.div(raytracer.PIXEL_SAMPLES, col);
+				double r,g,b;
+				r = col.x;
+				b = col.y;
+				g = col.z;
+				double scale = 3.0 / PIXEL_SAMPLES;
+				r = Math.sqrt(scale*r);
+				b = Math.sqrt(scale*b);
+				g = Math.sqrt(scale*g);
+
+				r =(int) Math.min(r*255.0, 255);
+				b =(int) Math.min(b*255.0, 255);
+				g =(int) Math.min(g*255.0, 255);
 				raytracer.framebuffer[i*3][j] = (byte)r;
 				raytracer.framebuffer[i*3+1][j] = (byte)b;
 				raytracer.framebuffer[i*3+2][j] = (byte)g;
@@ -229,6 +261,10 @@ class raytracer{
     public static double getRandomNumber(double min, double max) {
         return ((Math.random() * (max - min)) + min);
     }
+
+	public static double degrees_to_radians(double degrees) {
+		return degrees * pi / 180.0;
+	}
 
 
     /*
@@ -268,7 +304,7 @@ class RTread implements Runnable{
 				raytracer.line = raytracer.line+5;
 				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
 				//raytracer.lineLock.unlock();
-				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+5);
+				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+5,id);
 			}
 		}
 			

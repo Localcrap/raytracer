@@ -10,6 +10,10 @@ public class AltCamera extends Camera {
         origin.sub( horizontal.div(2,temp),lower_left_corner);
         lower_left_corner.sub(vertical.div(2,temp));
         lower_left_corner.sub(new Vec3(0, 0, focal_length));
+        theta = raytracer.degrees_to_radians(fov);
+        h = Math.tan(theta/2);
+        viewport_height = 2.0*h;
+        viewport_width = aspect_ratio*viewport_height;
         
         //TODO Auto-generated constructor stub
     }
@@ -21,6 +25,11 @@ public class AltCamera extends Camera {
     double viewport_height = 2.0;
     double viewport_width = aspect_ratio * viewport_height;
     double focal_length = 1.5;
+    double vfov, theta,h;
+    Vec3 lookAt,LookFrom,vup;
+
+
+
 
     Vec3 origin = new Vec3(0, 0, 0);
     Vec3 horizontal = new Vec3(viewport_width, 0, 0);

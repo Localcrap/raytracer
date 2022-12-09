@@ -168,6 +168,7 @@ public class RayAlg {
 		Vec3 temp = new Vec3(0);
 		Vec3 temp2 = new Vec3(0);
 		Vec3 temp3 = new Vec3(0);
+		Vec3 uv = ray.direction.unitVector();
     	Vec3 phit = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
@@ -228,14 +229,21 @@ public class RayAlg {
     		else if(surf.ktlucence>0) {
 				start = System.currentTimeMillis();
 				
-    			double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
-    			double cosi = Math.min(N.dot(ray.direction.negate(temp)),1);
+    			//double ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface? 
+
+    			double cosTheta = Math.min(N.dot(uv.negate(temp)),1); 
 				Vec3 rOutPerp = new Vec3();
-				ray.direction.add(N.mult(cosi, temp), rOutPerp).mult(surf.ktlucence);
+				double refractionRatio = (hit[0].enter ==1) ? surf.ktlucence : (1/surf.ktlucence); 
+				uv.add(N.mult(cosTheta, temp), rOutPerp).mult(refractionRatio);
 				Vec3 rOutParalell = new Vec3();
 				N.mult(Math.sqrt(Math.abs(1.0-rOutPerp.length2())), rOutParalell);
-				rOutParalell.add(rOutPerp, refraction);
+				rOutParalell.add(rOutPerp);
+				Ray refRay = new Ray(P,rOutParalell);
+				bvhTrace(level+1,weight,refRay,refraction,tmin,tmax,id);
 
+				
+				
+				//refraction.mult(refractionRatio);
 
 
 				/*
@@ -253,12 +261,11 @@ public class RayAlg {
     			
     		}
 			
-    		temp2 = refraction.copy();
-			temp2.mult(surf.ktlucence);
-
+    		
+			//refraction.mult(1-fresneleffect);
 			//TODO:fresnel breaks lamberian for some reason
     		reflection.mult(1,temp);
-    		temp.add(temp2);
+    		temp.add(refraction);
     		temp.mult(surf.colour);
     		col.setValuesV(temp);
     		
@@ -320,24 +327,30 @@ public class RayAlg {
 	}
 
 	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col,int id){
+		Vec3 temp;
 		Vec3 bounce = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
+		Vec3 transmission = new Vec3(1);
 		Vec3 dir = new Vec3(0);
 		P.add(N,dir).add(Vec3.randomUnitVector());
 		Ray target = new Ray(P, dir);
-		int hits = 0;
 		bvhTrace(level+1, weight, target, bounce, tmin, tmax,id);
-		/*
+		/* 
 		for(int i = 0;i< raytracer.lights.size();i++) {
-			if(raytracer.lights.get(i).intersection(ray, tmin, tmax, hit)>0){
-
-				hits++;
+			raytracer.lights.get(i).getCenter().sub(P,dir);
+			target.direction = dir;
+			target.origin = P ;
+			
+			
+			if(raytracer.lights.get(i).intersection(target, tmin, tmax, hit)>0){
+				transmission.setZero();
 
 			}
 		}
-		 */
+		*/
 		col.add(bounce.mult(0.5,bounce),col).mult(hit[0].prim.getSurf().colour);
+		col.mult(transmission);
 
 		 
 	}
@@ -371,21 +384,21 @@ public class RayAlg {
 		sd.addS(-2.*I.dot(N), I);
 		return sd;
 	}
-	public static int shadow(Ray ray,double tmin,double tmax) {
+	public static boolean shadow(Ray ray,double tmin,double tmax) {
 		int nhit;
 		Isect[] hit = new Isect[raytracer.ISECTMAX];
 		int hitpos = 0;
 		
-		for( int i = 0; i<raytracer.objects.size();i++) {
-			if(raytracer.objects.get(i).intersection(ray,tmin,tmax, hit)== 0) {
-				return 1;
+		for( int i = 0; i<raytracer.lights.size();i++) {
+			if(raytracer.lights.get(i).intersection(ray,tmin,tmax, hit)== 0) {
+				return true;
 			}
 			if( hit[0].t > raytracer.rayeps) {
-				return 1;
+				return true;
 			}
 
 		}
-    	return 0;
+    	return false;
     }
 }
 

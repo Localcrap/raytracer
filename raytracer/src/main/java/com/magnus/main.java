@@ -13,13 +13,13 @@ class raytracer{
 	}
 
 	
-    public final static int MAX_RAY_DEPTH = 10;
-    public final static int IMAGE_HIGHT = 200;
-    public final static int IMAGE_WIDTH = 400;
+    public final static int MAX_RAY_DEPTH = 20;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 8;
+	public final static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 100;
-	public final static int PIXEL_SAMPLES = 100	;
+	public final static int PIXEL_SAMPLES = 100;
 	public final static double pi = 3.1415926535897932385;
 	public static AltCamera c;
 	public static int line = 0;
@@ -52,9 +52,9 @@ class raytracer{
 		long start,stop;
         //Matrix m = new Matrix(IMAGE_HIGHT, IMAGE_WIDTH);
         //Camera c;
-        Vec3 pos = new Vec3(0,0,0), dir = new Vec3(0,0,0);
+        //Vec3 pos = new Vec3(0,0,0), dir = new Vec3(0,0,0);
         
-        c = new AltCamera(pos,140,dir,IMAGE_WIDTH,IMAGE_HIGHT,new Vec3(1,0,-5), new Vec3(0,10,0),new Vec3(0,-1,0));
+        c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,0,2),new Vec3(1,0,0));
 		start = System.currentTimeMillis();
         setupObjects();
 		stop =  System.currentTimeMillis();
@@ -68,22 +68,26 @@ class raytracer{
     private static void setupObjects() {
         objects = new ROList();
 		lights = new ROList();
+		
         
         objects.add( new Sphere(10000,new Vec3( 0, -10004, -20),
             new Vec3(0.2, 1, 0.2), 0, 0,0.0,0,0,null));
 
-		lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
-           new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+		//lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+        //   new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
 
-		lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
-            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+		//lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
+        //    new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
 		//red ball
-        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,1.0,null));
-		objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
-		objects.add( new Sphere(3,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 1,0,0,0,null));
-		objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
+        //objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,1.0,null));
+		//objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
+		objects.add( new Sphere(9,new Vec3( 5, 0, -25),new Vec3(0.65, 0.77, 0.97),0, 0,0,0,0,null));
+		//objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
 
 		//objects.add(TriangleMesh.generatePolySphere(5, 20));
+		
+		//objects.add( new Sphere(100,new Vec3(0,-100.5,-1),new Vec3(0.8,0.8,0),0,0,0,0,0,null));
+		//objects.add( new Sphere(0.5,new Vec3(0,0,-1),new Vec3(0.1,0.2,0.5),0,0,0,0,1,null));
 
         
         BVHNode b = new BVHNode(objects.getList(), 0, objects.size, 0, 100);
@@ -101,7 +105,7 @@ class raytracer{
 		}
 	}
 
-	public static void alg(Camera c) throws IOException, InterruptedException{
+	public static void alg(AltCamera c) throws IOException, InterruptedException{
 		long start,stop;
 
         //BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
@@ -218,7 +222,9 @@ class raytracer{
 					col.setZero();
 					
 					start = System.currentTimeMillis();
-					raytracer.c.computeRay(Math.random()+j,Math.random()+i,ray);
+					
+					raytracer.c.computeRay((Math.random()+j)/(IMAGE_HIGHT),(Math.random()+i)/IMAGE_WIDTH,ray);
+					//ray.direction.normalize();
 					stop = System.currentTimeMillis();
 					rayTime[id] += (stop-start);
 					
@@ -228,18 +234,18 @@ class raytracer{
 
 				}
 				
-				tempcol.div(raytracer.PIXEL_SAMPLES, col);
+				//tempcol.div(raytracer.PIXEL_SAMPLES, col);
 				double r,g,b;
 				
 				r = col.x;
 				b = col.y;
 				g = col.z;
-				/* 
-				double scale = 3.0 / PIXEL_SAMPLES;
+				
+				double scale = 10.0 / PIXEL_SAMPLES;
 				r = Math.sqrt(scale*r);
 				b = Math.sqrt(scale*b);
 				g = Math.sqrt(scale*g);
-				*/
+				
 
 				r =(int) Math.min(r*255.0, 255);
 				b =(int) Math.min(b*255.0, 255);

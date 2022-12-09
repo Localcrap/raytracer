@@ -327,13 +327,13 @@ public class RayAlg {
 	}
 
 	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col,int id){
-		Vec3 temp;
+		Vec3 temp = new Vec3();
 		Vec3 bounce = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
 		Vec3 transmission = new Vec3(1);
 		Vec3 dir = new Vec3(0);
-		P.add(N,dir).add(Vec3.randomUnitVector());
+		P.add(N,dir).add(Vec3.randomInUnitSphere());
 		Ray target = new Ray(P, dir);
 		bvhTrace(level+1, weight, target, bounce, tmin, tmax,id);
 		/* 
@@ -349,8 +349,8 @@ public class RayAlg {
 			}
 		}
 		*/
-		col.add(bounce.mult(0.5,bounce),col).mult(hit[0].prim.getSurf().colour);
-		col.mult(transmission);
+		col.add(bounce.mult(0.5,temp),col).mult(hit[0].prim.getSurf().colour);
+		//col.mult(transmission);
 
 		 
 	}

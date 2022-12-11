@@ -7,6 +7,7 @@ public class TriangleMesh implements RObject{
 	Vec2[] texCoordinates;
 	Surf surf;
 	Vec3[] P, N;
+	Vec3 center;
 	int[] trisIndex;
 	int numTris = 0;
 	public static  double kEpsilon = 1e-8; 
@@ -50,6 +51,14 @@ public class TriangleMesh implements RObject{
 		this.surf = surf;
 		texCoordinates = st;
 
+		Vec3 center = new Vec3();
+
+		for(Vec3 p : P){
+			center.add(p);
+		}
+		center.div(P.length);
+		this.center = center;
+
 
 
 
@@ -87,6 +96,10 @@ public class TriangleMesh implements RObject{
 		}
 
 		u[2] = v0v2.dot(qvec)*invDet;
+
+		if(u[2]<raytracer.rayeps){
+			return false;
+		}
 
 		
 
@@ -143,9 +156,9 @@ public class TriangleMesh implements RObject{
 	public int intersection(Ray ray,double tmin,double tmax,Isect[] hit){
 		int j = 0;
 		int isect = 0;
-		
-		hit[0] = new Isect(this, surf);
-		hit[0].t = Double.MAX_VALUE;
+		Isect h1;// = new Isect(this, surf);
+		h1 = new Isect(this, surf);
+		h1.t = Double.MAX_VALUE;
 		
 		for (int i = 0; i<numTris;i++){
 			Vec3 v0 = P[trisIndex[j]];
@@ -155,12 +168,12 @@ public class TriangleMesh implements RObject{
 			double[] u = new double[3];
 			u[2]= Double.MAX_VALUE;
 			if(rayTriangleIntersect(ray, v0, v1, v2,  u)){
-				if( u[2] < hit[0].t){
+				if( u[2] < h1.t){
 					//TODO: test array;
-					hit[0].t = u[2];
-					hit[0].uvTriangle.x = u[0];
-					hit[0].uvTriangle.y = u[1];
-					hit[0].indexTriangle = i;
+					h1.t = u[2];
+					h1.uvTriangle.x = u[0];
+					h1.uvTriangle.y = u[1];
+					h1.indexTriangle = i;
 					isect = 1;
 				}
 
@@ -168,6 +181,14 @@ public class TriangleMesh implements RObject{
 
 			}
 			j+=3;
+		}
+		if(isect==1){
+			if(hit[0]!=null){
+				if(hit[0].t < h1.t){
+					return isect;
+				}
+			}
+			hit[0]= h1;
 		}
 		return isect;
 	}
@@ -247,7 +268,7 @@ public class TriangleMesh implements RObject{
 			vid = numV;
 		}
 		Surf surf = new Surf();
-		surf.ktlucence  =1;
+		surf.ktlucence  =0;
 		surf.colour = new Vec3(1, 1, 1);
 
 
@@ -316,8 +337,7 @@ public class TriangleMesh implements RObject{
 	}
 	@Override
 	public Vec3 getCenter() {
-		//just picking a random point for now;
-		return P[0];
+		return center;
 	}
 
 }

@@ -167,7 +167,7 @@ public class RayAlg {
 		
 		Vec3 temp = new Vec3(0);
 		Vec3 temp2 = new Vec3(0);
-		Vec3 temp3 = new Vec3(0);
+		//Vec3 temp3 = new Vec3(0);
 		Vec3 uv = ray.direction.unitVector();
     	Vec3 phit = new Vec3(0);
 		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
@@ -262,9 +262,9 @@ public class RayAlg {
     		}
 			
     		
-			//refraction.mult(1-fresneleffect);
+			refraction.mult(1-fresneleffect);
 			//TODO:fresnel breaks lamberian for some reason
-    		reflection.mult(1,temp);
+    		reflection.mult(fresneleffect,temp);
     		temp.add(refraction);
     		temp.mult(surf.colour);
     		col.setValuesV(temp);
@@ -333,7 +333,7 @@ public class RayAlg {
 		Vec3 N = robject.normal(P,hit[0].indexTriangle);
 		Vec3 transmission = new Vec3(1);
 		Vec3 dir = new Vec3(0);
-		P.add(N,dir).add(Vec3.randomInUnitSphere());
+		ray.direction.add(N,dir).add(Vec3.randomUnitVector());
 		Ray target = new Ray(P, dir);
 		bvhTrace(level+1, weight, target, bounce, tmin, tmax,id);
 		/* 

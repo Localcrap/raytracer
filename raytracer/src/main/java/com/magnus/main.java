@@ -14,10 +14,10 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10	;
-    public final static int IMAGE_HIGHT = 1000;
-    public final static int IMAGE_WIDTH = 1000;
+    public final static int IMAGE_HIGHT = 200;
+    public final static int IMAGE_WIDTH = 200;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-	public final static int THREAD_COUNT = 16;
+	public static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 10;
 	public final static int PIXEL_SAMPLES = 50;
 	public final static double pi = 3.1415926535897932385;
@@ -52,9 +52,9 @@ class raytracer{
 
     public static void main(String args[]) throws IOException, InterruptedException {
 		long start,stop;
-        //Matrix m = new Matrix(IMAGE_HIGHT, IMAGE_WIDTH);
-        //Camera c;
-        //Vec3 pos = new Vec3(0,0,0), dir = new Vec3(0,0,0);
+		if(args.length >0){
+			THREAD_COUNT = Integer.valueOf(args[0]);
+		}
         
         c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,2,10),new Vec3(1,0,0));
 		start = System.currentTimeMillis();
@@ -324,7 +324,7 @@ class RTread implements Runnable{
 			if(raytracer.line < raytracer.IMAGE_HIGHT){
 				curLine = raytracer.line;
 				raytracer.line = raytracer.line+5;
-				System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
+				//System.out.println(Integer.toString(curLine)+" on thread "+ Integer.toString(id));
 				//raytracer.lineLock.unlock();
 				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+5,id);
 			}

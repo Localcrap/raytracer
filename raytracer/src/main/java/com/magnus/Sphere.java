@@ -7,6 +7,7 @@ public class Sphere implements RObject{
 	Vec3 center;
 	double radius2;
 	public Surf surf;
+	BVH box;
 	
 	
 	//	
@@ -24,6 +25,7 @@ public class Sphere implements RObject{
 		surf.refrindex = refrindex;
 		surf.ktlucence = ktlucence;
 		surf.emission_colour = emission;
+		box = genBB();
 		
 		
 	}
@@ -118,10 +120,13 @@ public class Sphere implements RObject{
 	}
 	
 	@Override public boolean boundingBox(BVHValues v) {
-	Vec3 temp2 = new Vec3(0);
-	Vec3 temp = new Vec3(radius, radius, radius);
-		v.outputBox = new BVH(center.sub(temp,temp2), center.add(temp,temp));
-		return true;
+	v.outputBox = box;
+	return true;
+	}
+	public BVH genBB(){
+		Vec3 temp2 = new Vec3();
+		Vec3 temp = new Vec3(radius, radius, radius);
+		return new BVH(center.sub(temp,temp2), center.add(temp,temp));
 	}
 
 

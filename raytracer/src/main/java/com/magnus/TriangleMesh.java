@@ -269,6 +269,8 @@ public class TriangleMesh implements RObject{
 		}
 		Surf surf = new Surf();
 		surf.ktlucence  =0;
+		surf.kspec = 1;
+		surf.fuzz = 0;
 		surf.colour = new Vec3(1, 1, 1);
 
 

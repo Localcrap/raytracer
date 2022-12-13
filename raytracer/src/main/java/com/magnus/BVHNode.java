@@ -86,7 +86,7 @@ public class BVHNode  implements RObject{
 
         }
         else{
-            //GFG.quickSort(objects,0,objectSpan-1,axis);
+            //GFG.quickSort(objects,0,objectSpan,axis);
             GFG.shitSort(objects,objectSpan-1, axis);
             int mid = objectSpan/2;
             left = new BVHNode(objects,0,mid,time0,time1);

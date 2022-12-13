@@ -7,6 +7,7 @@ public class BVH {
         maximum = b;
     }
     public boolean slowIntersection(Ray r, Double tmin, double tmax, Isect[] hit){
+
         for(int a=0;a<3;a++){
             double t0 = Math.min((minimun.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a),
             (maximum.itterate(a) -r.origin.itterate(a)) / r.direction.itterate(a));
@@ -22,12 +23,15 @@ public class BVH {
         return true;
     }
     
-    //int intersection test based on Andrew Kenslers approach
+    //AABB intersection test based on Andrew Kenslers approach
     public boolean intersection(Ray r,Double tmin,double tmax, Isect[] hit ){
-        double min,max; 
+
+        //return slowIntersection(r, tmin, tmax, hit);
+         
+        //double min,max; 
 
         for(int a=0;a<3;a++){
-            double invD = 1.0 / r.direction.itterate(a);
+            double invD = 1.0f / r.direction.itterate(a);
             double t0 = ((minimun.itterate(a) - r.origin.itterate(a))*invD);
             double t1 = ((maximum.itterate(a)- (r.origin.itterate(a)))* invD);
             if(invD < 0.0f){
@@ -36,14 +40,15 @@ public class BVH {
                 t1 = temp;
 
             }
-            min = t0>tmin ? t0 : tmin;
-            max = t1 < tmax ? t1 : tmax;
-            if(max <= min){
+            tmin = t0>tmin ? t0 : tmin;
+            tmax = t1 < tmax ? t1 : tmax;
+            if(tmax <= tmin){
                 return false;
 
             }
         }
         return true;
+        
     }
 
     public Vec3 min(){return minimun;}
@@ -54,9 +59,10 @@ public class BVH {
         Vec3 small = new Vec3(Math.min(box0.min().x, box1.min().x),
                               Math.min(box0.min().y, box1.min().y),
                               Math.min(box0.min().z,box1.min().z));
-        Vec3 big = new Vec3(Math.max(box0.min().x, box1.max().x),
-                            Math.max(box0.min().y, box1.max().y),
-                            Math.max(box0.min().z,box1.max().z));
+        Vec3 big = new Vec3(Math.max(box0.max().x, box1.max().x),
+                            Math.max(box0.max().y, box1.max().y),
+                            Math.max(box0.max().z,box1.max().z));
+
         return new BVH(small,big);
 
     }

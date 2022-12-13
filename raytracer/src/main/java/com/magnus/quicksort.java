@@ -69,9 +69,9 @@ class GFG {
 		System.out.println();
 	}
 	static void shitSort(RObject[] arr, int len, int axis){
-		for (int i=0;i<len-1;++i){
+		for (int i=0;i<len;++i){
 
-            for(int j=0;j<len-i-1; ++j){
+            for(int j=0;j<len-i; ++j){
 				if(box_compare(arr[j+1], arr[j], axis)){
 					swap(arr, j+1, j);
 				}

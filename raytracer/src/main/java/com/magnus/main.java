@@ -14,8 +14,8 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10	;
-    public final static int IMAGE_HIGHT = 500;
-    public final static int IMAGE_WIDTH = 500;
+    public final static int IMAGE_HIGHT = 1000;
+    public final static int IMAGE_WIDTH = 1000;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
 	public static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 10;
@@ -65,12 +65,8 @@ class raytracer{
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Object construction");
 		for(int i = 0;i<10;i++){
 			alg(c,i);
-			for(int j=0;j<IMAGE_WIDTH*3;j++){
-				for(int k=0;k<IMAGE_HIGHT;k++){
-					framebuffer[j][k]= 0;
-				}
-
-			}
+			framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
+			line =0;
 		}
 		
 
@@ -129,28 +125,15 @@ class raytracer{
 
 	public static boolean alg(AltCamera c,int loop) throws IOException, InterruptedException{
 		long start,stop;
-
-        //BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
-
-
-
-			
-
-
-		
-		//make threads pairwize for now
 		int threads = THREAD_COUNT;
-		//int widthCut,hightCut;
 		start = System.currentTimeMillis();
 		if(threads == 0){
 			return false;
 		}
-		
 		Thread[] rt = new Thread[threads];
 
 		for(int i=0;i<(threads);i++){
 			rt[i]= new Thread(new RTread(i));
-
 		}
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Thread construction");
@@ -162,6 +145,7 @@ class raytracer{
 		for(int i = 0;i<threads;i++){
 
 				rt[i].join();
+
 		}
 		
 		stop = System.currentTimeMillis();
@@ -184,66 +168,37 @@ class raytracer{
 		}
 		w.close();
 
-		try {
-			File picture = new File("image"+loop+".ppm");
-			if(picture.createNewFile()){
+		
+		start = System.currentTimeMillis();
+		writeFrambuffer("image"+loop+".ppm");
+		stop = System.currentTimeMillis();
+		System.out.println("Time: "+Long.toString(stop-start)+ " for writing to file");
+		return true;
+    }
+	private static void writeFrambuffer(String string) throws IOException {
+		createFile(string);
+		FileWriter w = createWriter(string);
+		w.write("P3\n"+Integer.toString(IMAGE_WIDTH)+" "+Integer.toString(IMAGE_HIGHT)+"\n255\n");
 
-			}
-			else{
-				picture.delete();
-				picture.createNewFile();
-			}
-			FileWriter pic = new FileWriter("image"+loop+".ppm");
-			pic.write("P3\n"+Integer.toString(IMAGE_WIDTH)+" "+Integer.toString(IMAGE_HIGHT)+"\n255\n");
-					
-			start = System.currentTimeMillis();
-			
-		//String s= "";
-        for(int j = 0; j< IMAGE_HIGHT;j++){
+		for(int j = 0; j< IMAGE_HIGHT;j++){
 			
             for(int i = 0; i< IMAGE_WIDTH*3;i++){
-				pic.write(Integer.toString(Byte.toUnsignedInt(framebuffer[i][j]))+" ");
+				w.write(Integer.toString(Byte.toUnsignedInt(framebuffer[i][j]))+" ");
 				
             }
 			//s = s+"\n";
-			pic.write("\n");
+			w.write("\n");
 			
         }
-		stop = System.currentTimeMillis();
-		System.out.println("Time: "+Long.toString(stop-start)+ " for creating string");
-		start = System.currentTimeMillis();
-		//pic.write(s);
-		stop = System.currentTimeMillis();
-		System.out.println("Time: "+Long.toString(stop-start)+ " for writing to file");
-
-		pic.close();
-		} catch (IOException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return true;
-        //File outputFile = new File("output.bmp");
-        //ImageIO.write(image, "bmp", outputFile);
-    }
-	/* 
-	public static int rgbgen(double r,double g,double b) {
-		int x,y,z;
-		x =(int) Math.min(r*255.0, 255);
-		y =(int) Math.min(g*255.0, 255);
-		z =(int) Math.min(b*255.0, 255);
-		
-		//return ((x)<<16)|((y)<<8)|(z);
+		w.close();
 	}
-	*/
+
 	public static void seqTrace(int widthStart, int widthStop, int hightStart,int hightStop,int id){
 		long start, stop;
 		int max = Integer.MAX_VALUE;
-		//start = System.currentTimeMillis();
-		//int test= 0;
-    	//RayAlg ra = new RayAlg();
+;
         Ray ray = new Ray();
         Vec3 col = new Vec3(0,0,0);
-		//System.out.println("iterations= " + Integer.toString((hightStop-hightStart)*(widthStop-widthStart)));
         for(int j = hightStart; j< hightStop;j++){
             for(int i = widthStart; i< widthStop;i++){
 				
@@ -260,7 +215,7 @@ class raytracer{
 					
 					RayAlg.bvhTrace(0,1,ray,col,-max,max,id);
 					tempcol.add(col);
-					//int rgb = rgbgen(col.x,col.y,col.z);
+
 
 				}
 				
@@ -286,8 +241,6 @@ class raytracer{
 
             }
         }
-		//stop = System.currentTimeMillis();
-		//System.out.println("Time: "+Long.toString(stop-start)+ " for induvidual thread tracing");
 
 	}
     

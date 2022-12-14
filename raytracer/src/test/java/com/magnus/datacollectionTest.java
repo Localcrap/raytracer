@@ -171,7 +171,7 @@ public class datacollectionTest {
         int cores[] = {1,4,8,16};
         int items[] = {5,10,20,50};
         int runs = 4;
-        int margin = 0;
+        int margin = 1;
         long results[][][] =new long[runs][items.length][cores.length];
         String args[] = new String[2];
 
@@ -186,10 +186,10 @@ public class datacollectionTest {
                     AltCamera cam = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,2,10),new Vec3(1,0,0));
                     raytracer.c =cam;
                     raytracer.setupObjects();
+                    raytracer.line = 0;
                     start = System.currentTimeMillis();
-                    if(!raytracer.alg(cam,j+i+c)){
-                        assertTrue(false);
-                    }
+                    raytracer.alg(cam,0);
+
                     stop = System.currentTimeMillis();
                     results[i][j][t] = stop-start;
                     t++;

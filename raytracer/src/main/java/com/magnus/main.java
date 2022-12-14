@@ -14,17 +14,18 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10	;
-    public final static int IMAGE_HIGHT = 200;
-    public final static int IMAGE_WIDTH = 200;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
 	public static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 10;
-	public final static int PIXEL_SAMPLES = 50;
+	public final static int PIXEL_SAMPLES = 100;
 	public final static double pi = 3.1415926535897932385;
 	public static AltCamera c;
 	public static int line = 0;
 	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
+	public static int items = 100;
 	public static long intersectionTime[] = new long[THREAD_COUNT];
 	public static long shadeTime[] = new long[THREAD_COUNT];
 	public static long rayTime[] = new long[THREAD_COUNT];
@@ -54,6 +55,7 @@ class raytracer{
 		long start,stop;
 		if(args.length >0){
 			THREAD_COUNT = Integer.valueOf(args[0]);
+			items = Integer.valueOf(args[1]);
 		}
         
         c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,2,10),new Vec3(1,0,0));
@@ -61,22 +63,30 @@ class raytracer{
         setupObjects();
 		stop =  System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Object construction");
+		for(int i = 0;i<10;i++){
+			alg(c,i);
+			for(int j=0;j<IMAGE_WIDTH*3;j++){
+				for(int k=0;k<IMAGE_HIGHT;k++){
+					framebuffer[j][k]= 0;
+				}
 
-		alg(c);
+			}
+		}
+		
 
         
     }
     
-    private static void setupObjects() {
+    public static void setupObjects() {
         objects = new ROList();
 		lights = new ROList();
 		
-		int size2 = 100;
+		int size2 = items/2;
 		int st = -size2;
-		
+		double shift = Math.random();
 		for(int i = st; i<size2;i=i+2){
             for(int j = st; j < size2; j= j+2){
-                objects.add(new Sphere(1,new Vec3(i,0, j),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,0,null));
+                objects.add(new Sphere(1,new Vec3(i+shift,0, j+shift),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,0,null));
 
             }
         }  
@@ -117,7 +127,7 @@ class raytracer{
 		}
 	}
 
-	public static void alg(AltCamera c) throws IOException, InterruptedException{
+	public static boolean alg(AltCamera c,int loop) throws IOException, InterruptedException{
 		long start,stop;
 
         //BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HIGHT, BufferedImage.TYPE_INT_RGB); 
@@ -133,7 +143,7 @@ class raytracer{
 		//int widthCut,hightCut;
 		start = System.currentTimeMillis();
 		if(threads == 0){
-			return ;
+			return false;
 		}
 		
 		Thread[] rt = new Thread[threads];
@@ -156,8 +166,10 @@ class raytracer{
 		
 		stop = System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for thread tracing");
-
+		createFile("threadstats.csv");
+		FileWriter w = createWriter("threadstats.csv");
 		for(int i = 0; i< threads;i++){
+			/* 
 			System.out.println("thread "+ i);
 			System.out.println(" intersection time= "+intersectionTime[i]);
 			System.out.println(" shade time= "+shadeTime[i]);
@@ -165,11 +177,15 @@ class raytracer{
 			System.out.println(" reflection time= "+reflectionTime[i]);
 			System.out.println(" refraction time= "+refractionTime[i]);
 			System.out.println(" diffuse time= "+diffuseTime[i]);
+			*/
+			writeToFile(w,i+","+intersectionTime[i]+","+shadeTime[i]+","+rayTime[i]+"," +reflectionTime[i]+","+
+				refractionTime[i]+","+diffuseTime[i]+"\n");
 
 		}
+		w.close();
 
 		try {
-			File picture = new File("image.ppm");
+			File picture = new File("image"+loop+".ppm");
 			if(picture.createNewFile()){
 
 			}
@@ -177,7 +193,7 @@ class raytracer{
 				picture.delete();
 				picture.createNewFile();
 			}
-			FileWriter pic = new FileWriter("image.ppm");
+			FileWriter pic = new FileWriter("image"+loop+".ppm");
 			pic.write("P3\n"+Integer.toString(IMAGE_WIDTH)+" "+Integer.toString(IMAGE_HIGHT)+"\n255\n");
 					
 			start = System.currentTimeMillis();
@@ -205,6 +221,7 @@ class raytracer{
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
+		return true;
         //File outputFile = new File("output.bmp");
         //ImageIO.write(image, "bmp", outputFile);
     }
@@ -299,7 +316,25 @@ class raytracer{
     	}
     }*/
 
+	public static void createFile(String s) throws IOException{
+		File f = new File(s);
+		if(f.createNewFile()){
 
+		}
+		else{
+			f.delete();
+			f.createNewFile();
+		}
+				
+	}
+	public static FileWriter createWriter(String s) throws IOException{
+		return new FileWriter(s);
+	}
+
+	public static void writeToFile(FileWriter w,String s) throws IOException{
+			w.write(s);
+
+	}
 
     
 

@@ -17,15 +17,21 @@ public class BVHCollector  implements RObject{
         boolean test = !box.intersection(ray,tmin,tmax, hit);
         if(test){
             //TODO:re-enable test;
-            return 0;
+            return -1;
         }
         int hitLeft = left.intersection(ray,tmin,tmax, hit);
-        int hitRight = right.intersection(ray, tmin,(hitLeft ==1) ? hit[0].t : tmax, hit);
+        int hitRight = right.intersection(ray, tmin,(hitLeft >=1) ? hit[0].t : tmax, hit);
 
         if(hitLeft >= 1 || hitRight >= 1){
-            return hitLeft+hitRight+3;
+            return makePositive(hitLeft)+makePositive(hitRight)+3;
         }
-        return 0;
+        return -(makePositive(hitLeft)+makePositive(hitRight)+3);
+    }
+    public static int makePositive(int x){
+        if(x<0){
+            return -x;
+        }
+        return x;
     }
     
 

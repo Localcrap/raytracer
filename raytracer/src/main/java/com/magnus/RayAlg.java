@@ -322,9 +322,130 @@ public class RayAlg {
 		
 
     }
-	public void diffuse(){
+	public static void altShade(int level,double weight,Ray ray,double tnear,double tmin,double tmax,RObject robject ,Isect[]  hit,Isect xd,Vec3 col,int id ) {
+		long start,stop;
+		col.setZero();
 		
-	}
+		Vec3 temp = new Vec3(0);
+		Vec3 temp2 = new Vec3(0);
+		//Vec3 temp3 = new Vec3(0);
+		Vec3 uv = ray.direction.unitVector();
+    	Vec3 phit = new Vec3(0);
+		Vec3 P = raytracer.rayPoint(ray,hit[0].t);
+		Vec3 N = robject.normal(P,hit[0].indexTriangle);
+		ray.origin.add(ray.direction.mult(tnear,temp),phit);
+		Vec3 nhit = null;
+		nhit= robject.normal(phit,hit[0].indexTriangle);
+    	
+    	//nhit.normalize();
+		Surf surf =  robject.getSurf();
+    	
+    	
+    	double bias =  0.0001;
+    	boolean inside = false;
+    	if (ray.direction.dot(nhit)>0) {
+    		nhit.negate();
+    		inside = true;
+    		
+    		
+    	}
+    	//if not defuse
+		
+    	if( ((surf.ktlucence> 0) || (surf.kspec> 0)) &&  level < raytracer.maxlevel) {
+			
+		//if(surf.kspec> 0) {
+    		Vec3 reflection = new Vec3(0);
+    		Vec3 refraction = new Vec3(0);
+    			
+    		
+    		
+    		double facingratio = -ray.direction.dot(nhit);
+    		double fresneleffect = mix(Math.pow(1-facingratio, 3),1,0.1);
+    		
+    		//do reflection
+    		if(surf.kspec> 0) {
+				start = System.currentTimeMillis();
+				
+				
+				Vec3  refldir = new Vec3(0);
+        		//ray.direction.sub(nhit.mult(2,temp).mult(ray.direction.dot(nhit),temp2),refldir);
+
+
+				ray.direction.sub(N.mult(2*ray.direction.dot(N),temp), refldir);
+				refldir.add(Vec3.randomInUnitSphere().mult(robject.getSurf().fuzz,temp));
+
+        		
+        		refldir.normalize();
+        		 //colour;
+
+        		bvhTrace(level+1,weight,new Ray(phit.add(nhit.mult(bias,temp2),temp),refldir),reflection,tmin,tmax,id);
+				stop = System.currentTimeMillis();
+				raytracer.reflectionTime[id] += (stop-start);
+    		}
+
+    		
+    		
+    		//do refraction
+			
+    		else if(surf.ktlucence>0) {
+				start = System.currentTimeMillis();
+    			double cosTheta = Math.min(N.dot(uv.negate(temp)),1); 
+				Vec3 rOutPerp = new Vec3();
+				double refractionRatio = (hit[0].enter ==1) ? surf.ktlucence : (1/surf.ktlucence); 
+				uv.add(N.mult(cosTheta, temp), rOutPerp).mult(refractionRatio);
+				Vec3 rOutParalell = new Vec3();
+				N.mult(Math.sqrt(Math.abs(1.0-rOutPerp.length2())), rOutParalell);
+				rOutParalell.add(rOutPerp);
+				Ray refRay = new Ray(P,rOutParalell);
+				bvhTrace(level+1,weight,refRay,refraction,tmin,tmax,id);
+
+    		}
+			
+    		
+			refraction.mult(1-fresneleffect);
+    		reflection.mult(fresneleffect,temp);
+    		temp.add(refraction);
+    		temp.mult(surf.colour);
+    		col.setValuesV(temp);
+    		
+    		
+    	}
+    	else {
+			
+			start = System.currentTimeMillis();
+			//lambertianReflectance(level,weight,tmin,tmax,ray,hit,robject,col,id);
+			
+			
+
+			//
+			
+    		for(int i = 0;i< raytracer.objects.size;i++) {
+    			if(raytracer.objects.get(i) != robject && raytracer.objects.get(i).getSurf().emission_colour != null) {
+    				Vec3 transmission = new Vec3(1);
+    				Vec3 lightDirection = new Vec3(0);
+					(raytracer.objects.get(i)).getCenter().sub(phit,lightDirection);
+    				lightDirection.normalize();
+    				for(int j = 0;j<raytracer.objects.size();j++) {
+    					if(raytracer.objects.get(j) != raytracer.objects.get(i)) {
+    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias,temp2),temp).add(N,temp).add(Vec3.randomUnitVector(),temp),lightDirection),tmin,tmax, hit)>0) {
+    							transmission.setZero();;
+    							break;
+    						}
+    					}
+    				}
+    				col.add(surf.colour.mult(transmission,temp2).mult
+    						(Math.max(0.,nhit.dot(lightDirection)),temp).mult(raytracer.objects.get(i).getSurf().emission_colour,temp2 ) );
+    				
+    			}
+    		}
+			
+			stop = System.currentTimeMillis();
+			raytracer.diffuseTime[id]+= stop-start;
+			
+			
+    	}
+
+    }
 
 	public static void lambertianReflectance(int level,double weight,double tmin,double tmax,Ray ray,Isect hit[],RObject robject,Vec3 col,int id){
 		Vec3 temp = new Vec3();

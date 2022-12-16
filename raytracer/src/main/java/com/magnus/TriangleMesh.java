@@ -192,6 +192,46 @@ public class TriangleMesh implements RObject{
 		}
 		return isect;
 	}
+	public int altIntersection(Ray ray,double tmin,double tmax,Isect[] hit){
+		int j = 0;
+		int isect = 0;
+		Isect h1;// = new Isect(this, surf);
+		h1 = new Isect(this, surf);
+		h1.t = Double.MAX_VALUE;
+		
+		for (int i = 0; i<numTris;i++){
+			Vec3 v0 = P[trisIndex[j]];
+			Vec3 v1 = P[trisIndex[j+1]];
+			Vec3 v2 = P[trisIndex[j+2]];
+			
+			double[] u = new double[3];
+			u[2]= Double.MAX_VALUE;
+			if(altRayTriangleIntersect(ray, v0, v1, v2,  u)){
+				if( u[2] < h1.t){
+					//TODO: test array;
+					h1.t = u[2];
+					h1.uvTriangle.x = u[0];
+					h1.uvTriangle.y = u[1];
+					h1.indexTriangle = i;
+					isect = 1;
+				}
+
+
+
+			}
+			j+=3;
+		}
+		if(isect==1){
+			if(hit[0]!=null){
+				if(hit[0].t < h1.t){
+					return isect;
+				}
+			}
+			hit[0]= h1;
+		}
+		return isect;
+	}
+
 	public static TriangleMesh generatePolySphere(double rad,int divs){
 		
 		int numVertices = (divs-1)*divs+2;

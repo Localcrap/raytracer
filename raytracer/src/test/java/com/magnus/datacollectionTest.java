@@ -227,6 +227,58 @@ public class datacollectionTest {
 
         
     }
+    @Test
+    public void testTriangleIntersection() throws IOException{
+        long start,stop;
+        int runs = 4;
+        int margin = 1;
+        long results[][] = new long[runs][4];  
+        AltCamera c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,0,10),new Vec3(1,0,0));
+        Isect hit[] = new Isect[2];
+        ROList objects = new ROList(1);
+        Ray r =new Ray();
+        TriangleMesh t10 = TriangleMesh.generatePolySphere(5, 10);
+        TriangleMesh t100 = TriangleMesh.generatePolySphere(5, 100);
+        for(int i = 0; i<runs;i++){
+            c.computeRay(0.5, 0.5, r);
+            start = System.currentTimeMillis();
+            t10.intersection(r, -10000, 100000, hit);
+            stop = System.currentTimeMillis();
+            results[i][0] = stop-start;
+            start = System.currentTimeMillis();
+            t100.intersection(r, -10000, 100000, hit);
+            stop = System.currentTimeMillis();
+            results[i][1] = stop-start;
+
+            start = System.currentTimeMillis();
+            t10.altIntersection(r, -10000, 100000, hit);
+            stop = System.currentTimeMillis();
+            results[i][2] = stop-start;
+            start = System.currentTimeMillis();
+            t100.altIntersection(r, -10000, 100000, hit);
+            stop = System.currentTimeMillis();
+            results[i][3] = stop-start;
+        }
+        createFile("triangleIntersection.csv");
+        FileWriter w = createWriter("triangleIntersection.csv");
+        long r0 =0,r1 =0,r2=0,r3=0;
+        for(int i = 0;i<runs-margin;i++){
+            r0 += results[i][0];
+            r1 += results[i][1];
+            r2 += results[i][2];
+            r3 += results[i][3];
+        }
+        r0 /= runs-margin;
+        r1 /= runs-margin;
+        r2 /= runs-margin;
+        r3 /= runs-margin;
+        writeToFile(w,10+","+r0+","+r2 +"\n");
+        writeToFile(w,10+","+r1+","+r3 +"\n");
+
+        
+
+    }
+
     public void createFile(String s) throws IOException{
         File f = new File(s);
         if(f.createNewFile()){

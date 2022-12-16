@@ -21,11 +21,11 @@ plt.bar(Xpop + 0.25, z, color = "g", width = 0.25, label = "Sekvensiell")
 bars = (x)
 
 # Add title and axis names
-plt.title('My title')
-plt.xlabel('categories')
-plt.ylabel('values')
+plt.title('Time Improvement Between BVH And Sequential Intersection Times ')
+plt.xlabel('Number Of Object')
+plt.ylabel('Values')
 plt.yscale("log")
-plt.grid(1, which = "both")
+#plt.grid(1, which = "both")
 plt.legend()
  
 # Create names on the x axis

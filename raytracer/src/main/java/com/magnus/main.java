@@ -14,18 +14,18 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10	;
-    public final static int IMAGE_HIGHT = 1000;
-    public final static int IMAGE_WIDTH = 1000;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
 	public static int THREAD_COUNT = 16;
     public final static int ISECTMAX = 10;
-	public final static int PIXEL_SAMPLES = 100;
+	public final static int PIXEL_SAMPLES = 50;
 	public final static double pi = 3.1415926535897932385;
 	public static AltCamera c;
 	public static int line = 0;
 	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
-	public static int items = 100;
+	public static int items = 20;
 	public static long intersectionTime[] = new long[THREAD_COUNT];
 	public static long shadeTime[] = new long[THREAD_COUNT];
 	public static long rayTime[] = new long[THREAD_COUNT];
@@ -63,11 +63,8 @@ class raytracer{
         setupObjects();
 		stop =  System.currentTimeMillis();
 		System.out.println("Time: "+Long.toString(stop-start)+ " for Object construction");
-		for(int i = 0;i<10;i++){
-			alg(c,i);
-			framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
-			line =0;
-		}
+		alg(c,0);
+
 		
 
         
@@ -89,12 +86,14 @@ class raytracer{
 		
         objects.add( new Sphere(10000,new Vec3( 0, -10005, 0),
             new Vec3(0.2, 1, 0.2), 0, 0,0.0,0,0,null));
- /* 
-		//lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
-        //   new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
 
-		//lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
-        //    new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+		objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+           new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+
+	
+		lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
+            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+			    /* 
 		//red ball
         objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,1.0,null));
 		//objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));

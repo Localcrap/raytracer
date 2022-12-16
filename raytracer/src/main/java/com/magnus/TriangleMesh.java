@@ -192,7 +192,8 @@ public class TriangleMesh implements RObject{
 		}
 		return isect;
 	}
-	public int altIntersection(Ray ray,double tmin,double tmax,Isect[] hit){
+	public int altIntersection(Ray ray,double tmin,double tmax,Isect[] hit, int v){
+		boolean test = false;
 		int j = 0;
 		int isect = 0;
 		Isect h1;// = new Isect(this, surf);
@@ -206,7 +207,14 @@ public class TriangleMesh implements RObject{
 			
 			double[] u = new double[3];
 			u[2]= Double.MAX_VALUE;
-			if(altRayTriangleIntersect(ray, v0, v1, v2,  u)){
+			if(v == 0){
+				test =altRayTriangleIntersect(ray, v0, v1, v2,  u);
+
+			}
+			else{
+				test = insideOutsideTest(ray, v0, v1, v2, u);
+			}
+			if(test){
 				if( u[2] < h1.t){
 					//TODO: test array;
 					h1.t = u[2];
@@ -315,6 +323,72 @@ public class TriangleMesh implements RObject{
 
 
 		return new TriangleMesh(npolys,vertsIndex, faceIndex, P, N, st, surf);
+	}
+
+	public boolean insideOutsideTest(Ray r,Vec3 v0,Vec3 v1,Vec3 v2, double[] u){
+		Vec3 temp = new Vec3();
+		Vec3  v0v1 =  new Vec3();
+		Vec3  v0v2 =  new Vec3();
+		Vec3  N =  new Vec3();
+
+		v1.sub(v0, v0v1);
+		v2.sub(v0,v0v2);
+		v0v1.cross(v0v2,N);
+
+
+		double area2 = N.length();
+
+		double NdotRayDirection = N.dot(r.direction);
+		//check if ray and plane are parallel.
+		if(NdotRayDirection < kEpsilon){
+			return false;
+		}
+		double d = -N.dot(v0);
+
+		double t = - (N.dot(r.origin)+d)/ NdotRayDirection;
+
+		if(t<0){
+			return false;
+		}
+		Vec3 P =  new Vec3();
+		r.origin.add(r.direction.mult(t, temp), P);
+
+		Vec3 c = new Vec3();
+		
+		Vec3 edge0 = new Vec3();
+		Vec3 vp0 = new Vec3();
+
+		v1.sub(v0,edge0);
+		P.sub(v0,vp0);
+
+		edge0.cross(vp0,c);
+		if(N.dot(c)<0){
+			return false;
+		}
+		Vec3 edge1 = new Vec3();
+		Vec3 vp1 = new Vec3();
+
+		v2.sub(v1,edge1);
+		P.sub(v1,vp1);
+
+		edge1.cross(vp1,c);
+		if(N.dot(c)<0){
+			return false;
+		}
+		Vec3 edge2 = new Vec3();
+		Vec3 vp2 = new Vec3();
+
+		v0.sub(v2,edge2);
+		P.sub(v2,vp2);
+
+		edge2.cross(vp2,c);
+		if(N.dot(c)<0){
+			return false;
+		}
+		u[1]=t;
+		u[0]=d;
+	
+		return true;
 	}
 
 	

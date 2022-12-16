@@ -13,7 +13,6 @@ public class BVHNode  implements RObject{
     public int intersection(Ray ray,double tmin,double tmax, Isect[] hit) {
         boolean test = !box.intersection(ray,tmin,tmax, hit);
         if(test){
-            //TODO:re-enable test;
             return 0;
         }
         int hitLeft = left.intersection(ray,tmin,tmax, hit);

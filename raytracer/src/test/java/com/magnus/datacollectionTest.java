@@ -232,13 +232,13 @@ public class datacollectionTest {
         long start,stop;
         int runs = 4;
         int margin = 1;
-        long results[][] = new long[runs][4];  
-        AltCamera c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,0,10),new Vec3(1,0,0));
+        long results[][] = new long[runs][6];  
+        AltCamera c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,2,-10),new Vec3(1,0,0));
         Isect hit[] = new Isect[2];
         ROList objects = new ROList(1);
         Ray r =new Ray();
-        TriangleMesh t10 = TriangleMesh.generatePolySphere(5, 10);
-        TriangleMesh t100 = TriangleMesh.generatePolySphere(5, 100);
+        TriangleMesh t10 = TriangleMesh.generatePolySphere(10, 500);
+        TriangleMesh t100 = TriangleMesh.generatePolySphere(5, 1000);
         for(int i = 0; i<runs;i++){
             c.computeRay(0.5, 0.5, r);
             start = System.currentTimeMillis();
@@ -251,31 +251,45 @@ public class datacollectionTest {
             results[i][1] = stop-start;
 
             start = System.currentTimeMillis();
-            t10.altIntersection(r, -10000, 100000, hit);
+            t10.altIntersection(r, -10000, 100000, hit,0);
             stop = System.currentTimeMillis();
             results[i][2] = stop-start;
             start = System.currentTimeMillis();
-            t100.altIntersection(r, -10000, 100000, hit);
+            t100.altIntersection(r, -10000, 100000, hit,0);
             stop = System.currentTimeMillis();
             results[i][3] = stop-start;
+
+            start = System.currentTimeMillis();
+            t10.altIntersection(r, -10000, 100000, hit,1);
+            stop = System.currentTimeMillis();
+            results[i][4] = stop-start;
+            start = System.currentTimeMillis();
+            t100.altIntersection(r, -10000, 100000, hit,1);
+            stop = System.currentTimeMillis();
+            results[i][5] = stop-start;
         }
         createFile("triangleIntersection.csv");
         FileWriter w = createWriter("triangleIntersection.csv");
-        long r0 =0,r1 =0,r2=0,r3=0;
-        for(int i = 0;i<runs-margin;i++){
+        long r0 =0,r1 =0,r2=0,r3=0,r4 = 0,r5=0;
+        for(int i = 1;i<runs;i++){
             r0 += results[i][0];
             r1 += results[i][1];
             r2 += results[i][2];
             r3 += results[i][3];
+            r4 += results[i][4];
+            r5 += results[i][5];
         }
         r0 /= runs-margin;
         r1 /= runs-margin;
         r2 /= runs-margin;
         r3 /= runs-margin;
-        writeToFile(w,10+","+r0+","+r2 +"\n");
-        writeToFile(w,10+","+r1+","+r3 +"\n");
+        r4 /= runs-margin;
+        r5 /= runs-margin;
 
-        
+        writeToFile(w,10+","+r0+","+r2 +","+r4 +"\n");
+        writeToFile(w,10+","+r1+","+r3 +","+r5 +"\n");
+
+        w.close();
 
     }
 

@@ -47,3 +47,7 @@ raytracer/target/surefire-reports/com.magnus.meshTest.txt
 raytracer/target/surefire-reports/TEST-com.magnus.AppTest.xml
 raytracer/target/surefire-reports/TEST-com.magnus.bvhTest.xml
 raytracer/target/surefire-reports/TEST-com.magnus.meshTest.xml
+*.ppm
+*.png
+*.zip
+*.class

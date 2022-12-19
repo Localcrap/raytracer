@@ -3,7 +3,7 @@ import csv
 
 # Set up the data for the line graph
 shader_implementations = ['lambertian', 'bounce + shadow']
-times = [36854, 1017461]
+times = [39550, 17793]
 
 # Create the line graph
 plt.bar(shader_implementations, times)

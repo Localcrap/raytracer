@@ -14,18 +14,18 @@ class raytracer{
 
 	
     public final static int MAX_RAY_DEPTH = 10	;
-    public final static int IMAGE_HIGHT = 1000;
-    public final static int IMAGE_WIDTH = 1000;
+    public final static int IMAGE_HIGHT = 500;
+    public final static int IMAGE_WIDTH = 500;
 	public static byte[][] framebuffer = new byte[IMAGE_WIDTH*3][IMAGE_HIGHT];
 	public static int THREAD_COUNT = 8;
     public final static int ISECTMAX = 10;
-	public final static int PIXEL_SAMPLES = 100;
+	public final static int PIXEL_SAMPLES = 50;
 	public final static double pi = 3.1415926535897932385;
 	public static AltCamera c;
 	public static int line = 0;
 	public static ReentrantLock lineLock = new ReentrantLock();
     public Comp modelroot;
-	public static int items = 100;
+	public static int items = 50;
 	public static long intersectionTime[] = new long[THREAD_COUNT];
 	public static long shadeTime[] = new long[THREAD_COUNT];
 	public static long rayTime[] = new long[THREAD_COUNT];
@@ -58,7 +58,7 @@ class raytracer{
 			items = Integer.valueOf(args[1]);
 		}
         
-        c = new AltCamera(90,new Vec3(0,0,+2), new Vec3(0,0,2),new Vec3(1,0,0));
+        c = new AltCamera(60,new Vec3(0,0,+2), new Vec3(0,0,4		),new Vec3(1,0,0));
 		start = System.currentTimeMillis();
         setupObjects();
 		stop =  System.currentTimeMillis();
@@ -73,10 +73,11 @@ class raytracer{
     public static void setupObjects() {
         objects = new ROList();
 		lights = new ROList();
-		/* 
+		
 		int size2 = items/2;
 		int st = -size2;
 		double shift = Math.random();
+		/* 
 		for(int i = st; i<size2;i=i+2){
             for(int j = st; j < size2; j= j+2){
                 objects.add(new Sphere(1,new Vec3(i+shift,0, j+shift),new Vec3(1.00, 0.32, 0.36), 0, 0,0,0,0,null));
@@ -86,25 +87,28 @@ class raytracer{
 		*/
         objects.add( new Sphere(10000,new Vec3( 0, -10005, 0),
             new Vec3(0.2, 1, 0.2), 0, 0,0.0,0,0,null));
- 
-		//lights.add(new Sphere(3,new Vec3( 0.0,     20, 0),
-        //   new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+		/* 
+		objects.add(new Sphere(3,new Vec3( 0.0,     20, 0),
+           new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(2)));
 
-		//lights.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
-        //    new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(10)));
+		   objects.add(new Sphere(3,new Vec3( 10.0,     20.0, 10.0),
+            new Vec3(0,0,0), 0.0, 0.0,0.0,0,0,new Vec3(2)));
+		/* 
+ 
+		*/
 		//red ball
-        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(1.00, 0.32, 0.36), 0, 1,0,0,0,null));
+        objects.add(new Sphere(4,new Vec3( 0.0,      0, -20),new Vec3(0.80, 0.8, 0.8), 0, 1,0,0,0,null));
 		//objects.add(new Sphere(2,new Vec3( 5, -1, -15),new Vec3(0.90, 0.76, 0.46),0, 0,0,0,0.001,null));
 		//objects.add( new Sphere(9,new Vec3( 9, 5, -25),new Vec3(0.65, 0.77, 0.97),0, 0,0,0,0,null));
 		//objects.add( new Sphere(3,new Vec3( -5.5, 0, -15),new Vec3(0.90, 0.90, 0.90),0, 1,0,0,0,null));
 
 		
-		//objects.add(TriangleMesh.generatePolySphere(5, 20));
+		
 		
 		//objects.add( new Sphere(100,new Vec3(0,-100.5,-1),new Vec3(0.8,0.8,0),0,0,0,0,0,null));
 		//objects.add( new Sphere(0.5,new Vec3(0,0,-1),new Vec3(0.1,0.2,0.5),0,0,0,0,1,null));
 
-        
+		//objects.add(TriangleMesh.generatePolySphere(5, 20));
         BVHNode b = new BVHNode(objects.getList(), 0, objects.size, 0, 100);
 		topNode = b;
 
@@ -206,7 +210,7 @@ class raytracer{
 					start = System.currentTimeMillis();
 					
 					raytracer.c.computeRay((Math.random()+j)/(IMAGE_HIGHT),(Math.random()+i)/IMAGE_WIDTH,ray);
-					ray.direction.normalize();
+					//ray.direction.normalize();
 					stop = System.currentTimeMillis();
 					rayTime[id] += (stop-start);
 					
@@ -305,11 +309,12 @@ class RTread implements Runnable{
 	public void run() {
 		int curLine = 0;
 		while(raytracer.line < raytracer.IMAGE_HIGHT){
-			raytracer.lineLock.lock();
+			//raytracer.lineLock.lock();
 			if(raytracer.line < raytracer.IMAGE_HIGHT){
 				curLine = raytracer.line;
 				raytracer.line = raytracer.line+5;
-				raytracer.lineLock.unlock();
+				//raytracer.lineLock.unlock();
+				System.out.println(curLine);	
 				raytracer.seqTrace(0, raytracer.IMAGE_WIDTH, curLine, curLine+5,id);
 			}
 		}

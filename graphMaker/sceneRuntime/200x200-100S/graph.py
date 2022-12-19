@@ -6,6 +6,7 @@ w = []
 x = []
 y = []
 z = []
+cores = [1,4,8,16]
 Xpop = np.arange(4)
 with open('sceneRuntime.csv','r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
@@ -18,17 +19,18 @@ with open('sceneRuntime.csv','r') as csvfile:
         z.append(int(row[4]))
 
 # Create bars and choose color
-plt.bar(Xpop, w, color = "b", width = 0.25, label = "10")
-plt.bar(Xpop + 0.25, x, color = "g", width = 0.25, label = "20")
-plt.bar(Xpop + 0.50, y, color = "y", width = 0.25, label = "40")
-plt.bar(Xpop + 0.70, z, color = "r", width = 0.25, label = "100")
- 
-bars = (x)
+plt.bar(Xpop, w, color = "b", width = 0.25, label = "1")
+plt.bar(Xpop + 0.25, x, color = "g", width = 0.25, label = "4")
+plt.bar(Xpop + 0.50, y, color = "y", width = 0.25, label = "8")
+plt.bar(Xpop + 0.70, z, color = "r", width = 0.25, label = "16")
+
+
+bars = (v)
 
 # Add title and axis names
-plt.title('My title')
-plt.xlabel('categories')
-plt.ylabel('values')
+plt.title('Running Time For A 200x200 Render ')
+plt.xlabel('Objects In Scene')
+plt.ylabel('Time(ms)')
 #plt.yscale("log")
 plt.grid(1, which = "both")
 plt.legend()

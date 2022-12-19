@@ -233,8 +233,7 @@ public class datacollectionTest {
         int runs = 4;
         int margin = 1;
         long results[][] = new long[runs][6];  
-        AltCamera c = new AltCamera(90,new Vec3(0,0,+1), new Vec3(0,2,-10),new Vec3(1,0,0));
-        Isect hit[] = new Isect[2];
+        AltCamera c = new AltCamera(90,new Vec3(0,0,+2), new Vec3(0,2,10),new Vec3(1,0,0));        Isect hit[] = new Isect[2];
         ROList objects = new ROList(1);
         Ray r =new Ray();
         TriangleMesh t10 = TriangleMesh.generatePolySphere(10, 500);

@@ -425,12 +425,11 @@ public class RayAlg {
     				Vec3 lightDirection = new Vec3(0);
 					(raytracer.objects.get(i)).getCenter().sub(phit,lightDirection);
     				lightDirection.normalize();
-    				for(int j = 0;j<raytracer.objects.size();j++) {
-    					if(raytracer.objects.get(j) != raytracer.objects.get(i)) {
-    						if(raytracer.objects.get(j).intersection(new Ray(phit.add(nhit.mult(bias,temp2),temp).add(N,temp).add(Vec3.randomUnitVector(),temp),lightDirection),tmin,tmax, hit)>0) {
-    							transmission.setZero();;
-    							break;
-    						}
+					if(raytracer.topNode.intersection(new Ray(phit.add(nhit.mult(bias,temp2),temp).add(N,temp)	,lightDirection),tmin,tmax, hit)>0) {
+    					if(hit[0].prim != raytracer.objects.get(i)) {
+							transmission.setZero();;
+							break;
+    						
     					}
     				}
     				col.add(surf.colour.mult(transmission,temp2).mult
